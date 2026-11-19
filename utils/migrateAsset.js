@@ -98,23 +98,23 @@ function resolveDownloadUrl(value) {
   const raw = String(value).trim();
   const base = DEFAULT_LEGACY_BASE.replace(/\/$/, '');
 
-  // Direct legacy S3 URLs are often private (HTTP 403). Prefer the public
-  // download-asset API using the object key from the path.
-  // e.g. https://tasdeeqimage.s3.us-east-2.amazonaws.com/1709...Logo.png
+  // Try S3 directly first — the bucket is often publicly readable and the
+  // legacy download-asset server may be down.
   const s3Match = raw.match(
     /^https?:\/\/tasdeeqimage\.s3[^/]*\.amazonaws\.com\/(.+)$/i
   );
   if (s3Match) {
-    let key = s3Match[1].split('?')[0];
-    try {
-      key = decodeURIComponent(key);
-    } catch {
-      /* keep raw key */
-    }
-    return `${base}/api/file/download-asset?asset_name=${encodeURIComponent(key)}`;
+    return raw.split('?')[0]; // use the S3 URL directly
   }
 
+  // download-asset URLs — extract asset_name and try S3 directly
   if (/download-asset/i.test(raw) && /asset_name=/i.test(raw)) {
+    const nameMatch = raw.match(/[?&]asset_name=([^&]+)/i);
+    if (nameMatch) {
+      let name;
+      try { name = decodeURIComponent(nameMatch[1]); } catch { name = nameMatch[1]; }
+      return `https://tasdeeqimage.s3.us-east-2.amazonaws.com/${encodeURIComponent(name)}`;
+    }
     if (/^https?:\/\//i.test(raw)) return raw;
     return raw.startsWith('/') ? `${base}${raw}` : `${base}/${raw}`;
   }
@@ -124,7 +124,8 @@ function resolveDownloadUrl(value) {
   if (/download-asset/i.test(raw)) {
     return raw.startsWith('/') ? `${base}${raw}` : `${base}/${raw}`;
   }
-  return `${base}/api/file/download-asset?asset_name=${encodeURIComponent(raw)}`;
+  // Bare filename — try S3 directly
+  return `https://tasdeeqimage.s3.us-east-2.amazonaws.com/${encodeURIComponent(raw)}`;
 }
 
 /**
