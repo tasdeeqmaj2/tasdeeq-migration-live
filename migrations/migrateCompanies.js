@@ -431,14 +431,136 @@ async function migrateOrganizationCompanies(
 }
 
 /**
- * Household employers have no industry in the legacy model.
- * Per corporate rules (industry required), they are not migrated as companies.
+ * Household/individual employers: users in user_worker_employment who have NO
+ * row in the organization table.  Create a personal "consumer-style" company
+ * for each so their workers can be linked.
  */
-async function migrateHouseholdEmployerCompanies() {
-  info(
-    'Skipping household employer companies — industry is required and households have none'
+async function migrateHouseholdEmployerCompanies(
+  oldDb,
+  newDb,
+  companyMap,
+  employerUserIndex,
+  emailClaimMap
+) {
+  section('Migrating Household Employer Companies...');
+
+  let inserted = 0;
+  let skipped = 0;
+
+  await forEachBatch(
+    async (lastId, limit) => {
+      const result = await oldDb.query(
+        `SELECT DISTINCT ON (e.user_id)
+           e.user_id,
+           u.name,
+           u.email,
+           u.phone_number,
+           u.cnic,
+           u.created_at
+         FROM user_worker_employment e
+         INNER JOIN "user" u ON u.id = e.user_id
+         WHERE NOT EXISTS (
+           SELECT 1 FROM organization o WHERE o.user_id = e.user_id
+         )
+         AND e.user_id > $1
+         ORDER BY e.user_id
+         LIMIT $2`,
+        [lastId, limit]
+      );
+      return result.rows;
+    },
+    async (rows, { batchIndex }) => {
+      const toInsert = [];
+      const now = new Date();
+
+      for (const row of rows) {
+        const odlUserId = String(row.user_id);
+        if (employerUserIndex[odlUserId]) {
+          skipped += 1;
+          continue;
+        }
+
+        const name =
+          (row.name && String(row.name).trim()) || `User ${row.user_id}`;
+        const emailKey = emailKeyFromRaw(row.email);
+        const email = emailKey ? companyEmail(row.email, `hh-${row.user_id}`) : null;
+
+        if (emailKey) {
+          if (emailClaimMap[emailKey] && emailClaimMap[emailKey] !== `hh-${row.user_id}`) {
+            logError({
+              migration: 'companies-household',
+              oldId: row.user_id,
+              message: `Skipped duplicate email "${emailKey}" — already claimed by ${emailClaimMap[emailKey]}`,
+              stack: null,
+            });
+            continue;
+          }
+          emailClaimMap[emailKey] = `hh-${row.user_id}`;
+        }
+
+        const phone = companyPhone(row.phone_number, `hh-${row.user_id}`);
+        const cnic = decryptField(row.cnic) || null;
+        const createdAt = row.created_at || now;
+
+        const newId = createId();
+        toInsert.push({
+          id: row.user_id,
+          odlUserId,
+          newId,
+          values: [
+            newId,
+            name,
+            email,
+            phone,
+            null,       // registrationNo
+            null,       // businessTypeId
+            null,       // industryId
+            null,       // provinceId
+            null,       // cityId
+            null,       // address
+            null,       // contactPerson
+            cnic,       // contactCnic
+            null,       // logoKey
+            false,      // isEducationInstitute
+            true,       // isActive
+            createdAt,
+            createdAt,
+          ],
+        });
+      }
+
+      if (toInsert.length === 0) return;
+
+      const { succeeded } = await bulkInsertWithFallback(
+        newDb,
+        'companies',
+        COMPANY_COLS,
+        toInsert,
+        {
+          migration: 'companies-household',
+          chunkSize: 1000,
+          toValues: (item) => item.values,
+          onSuccess: (chunk) => {
+            for (const item of chunk) {
+              companyMap[`hh-${item.id}`] = item.newId;
+              employerUserIndex[item.odlUserId] = item.newId;
+            }
+          },
+        }
+      );
+
+      inserted += succeeded;
+      if (shouldSaveMaps(batchIndex)) {
+        saveMap(MAP_NAME, companyMap);
+        saveMap(EMPLOYER_INDEX_NAME, employerUserIndex);
+        saveMap(EMAIL_CLAIM_MAP_NAME, emailClaimMap);
+      }
+    },
+    { size: DEFAULT_BATCH_SIZE, idField: 'user_id' }
   );
-  return { inserted: 0, skipped: 0 };
+
+  success(`Household employers: ${inserted} inserted, ${skipped} skipped`);
+  return { inserted, skipped };
 }
 
 async function migrateCompanies() {
@@ -459,7 +581,13 @@ async function migrateCompanies() {
     lookups,
     emailClaimMap
   );
-  const households = await migrateHouseholdEmployerCompanies();
+  const households = await migrateHouseholdEmployerCompanies(
+    oldDb,
+    newDb,
+    companyMap,
+    employerUserIndex,
+    emailClaimMap
+  );
 
   saveMap(MAP_NAME, companyMap);
   saveMap(EMPLOYER_INDEX_NAME, employerUserIndex);
