@@ -50,8 +50,7 @@ async function migrateWorkers(systemUserId) {
            w.created_at AS worker_created_at
          FROM user_worker_employment e
          INNER JOIN worker w ON w.id = e.worker_id
-         WHERE e.is_active = true
-           AND e.id > $1
+         WHERE e.id > $1
          ORDER BY e.id
          LIMIT $2`,
         [lastId, limit]
