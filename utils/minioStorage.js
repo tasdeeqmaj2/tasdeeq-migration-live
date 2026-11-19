@@ -22,14 +22,16 @@ function getClient() {
   if (client) return client;
 
   bucket = process.env.S3_BUCKET ?? 'tasdeeq';
+  const endpoint = process.env.S3_ENDPOINT ?? 'http://127.0.0.1:9000';
+  const isAws = endpoint.includes('amazonaws.com');
   client = new S3Client({
-    endpoint: process.env.S3_ENDPOINT ?? 'http://127.0.0.1:9000',
+    ...(isAws ? {} : { endpoint }),
     region: process.env.S3_REGION ?? 'us-east-1',
     credentials: {
       accessKeyId: process.env.S3_ACCESS_KEY ?? 'minioadmin',
       secretAccessKey: process.env.S3_SECRET_KEY ?? 'minioadmin',
     },
-    forcePathStyle: true,
+    forcePathStyle: !isAws,
   });
   return client;
 }
