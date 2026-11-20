@@ -93,7 +93,7 @@ async function main() {
     const tasks = tasksByCompany[companyId];
     const oldUserId = reverseCompanyMap[companyId];
 
-    if (!oldUserId) {
+    if (!oldUserId || isNaN(Number(oldUserId))) {
       // Company wasn't migrated from old DB (e.g. created in new system)
       noOldUser++;
       continue;
