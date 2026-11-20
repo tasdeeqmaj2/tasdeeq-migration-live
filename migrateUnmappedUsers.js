@@ -215,10 +215,10 @@ async function main() {
       // 3. Create CorporateUser link
       const corpUserId = createId();
       await client.query(`
-        INSERT INTO corporate_users (id, "userId", "companyId", "isAdmin", role, "createdAt", "updatedAt")
-        VALUES ($1, $2, $3, true, 'OWNER', $4, $4)
+        INSERT INTO corporate_users (id, "userId", "companyId", "isAdmin", role)
+        VALUES ($1, $2, $3, true, 'OWNER')
         ON CONFLICT ("userId") DO NOTHING
-      `, [corpUserId, actualUserId, companyId, oldUser.created_at || new Date()]);
+      `, [corpUserId, actualUserId, companyId]);
 
       // 4. Migrate workers
       const employments = empByUser[oldUserId] || [];
