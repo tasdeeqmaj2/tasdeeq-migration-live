@@ -154,14 +154,63 @@ async function main() {
 
   info(`Users with ledger pricing: ${userPriceCache.size}`);
 
-  // Create invoices
+  // ── Rollback any MIG-*-free invoices from a previous partial run ──
+  section('Rolling back previous MIG-free invoices');
+  const { rows: [{ cnt: freeCount }] } = await newDb.query(`
+    SELECT COUNT(*)::int AS cnt FROM invoices WHERE "invoiceNumber" LIKE 'MIG-%-free%'
+  `);
+  if (freeCount > 0) {
+    await newDb.query(`UPDATE verification_tasks SET "invoiceId" = NULL WHERE "invoiceId" IN (SELECT id FROM invoices WHERE "invoiceNumber" LIKE 'MIG-%-free%')`);
+    await newDb.query(`DELETE FROM invoice_items WHERE "invoiceId" IN (SELECT id FROM invoices WHERE "invoiceNumber" LIKE 'MIG-%-free%')`);
+    const { rowCount } = await newDb.query(`DELETE FROM invoices WHERE "invoiceNumber" LIKE 'MIG-%-free%'`);
+    info(`Rolled back ${rowCount} MIG-free invoices`);
+  }
+
+  // ── Also load verification_ledger entries grouped as "invoices" ──
+  // Each ledger entry with quantity > 0 becomes a separate invoice
+  section('Loading ledger entries as invoices for splitting');
+
+  // Build per-user ledger invoices: group consecutive same-date entries
+  const userLedgerInvoices = new Map(); // oldUserId → [{date, entries: [{quantity, amount, unitPrice}]}]
+
+  for (let i = 0; i < oldUserIds.length; i += LEDGER_CHUNK) {
+    const chunk = oldUserIds.slice(i, i + LEDGER_CHUNK);
+    try {
+      const { rows: ledgerRows } = await oldDb.query(`
+        SELECT user_id, quantity, amount, date, transaction_type_id
+        FROM public.verification_ledger
+        WHERE user_id = ANY($1::bigint[]) AND transaction_type_id IN (3, 4, 5)
+        ORDER BY user_id, date ASC, id ASC
+      `, [chunk]);
+
+      for (const r of ledgerRows) {
+        const uid = Number(r.user_id);
+        if (!userLedgerInvoices.has(uid)) userLedgerInvoices.set(uid, []);
+        const qty = Math.abs(Number(r.quantity) || 1);
+        const amt = Math.abs(Number(r.amount) || 0);
+        const unitPrice = qty > 0 ? Math.round(amt / qty) : 0;
+        userLedgerInvoices.get(uid).push({
+          date: new Date(r.date),
+          workerCount: qty,
+          totalAmount: amt,
+          unitPrice,
+          type: Number(r.transaction_type_id),
+        });
+      }
+    } catch (err) {
+      warn(`Ledger invoice load error at ${i}: ${err.message}`);
+    }
+  }
+  info(`Users with ledger invoice entries: ${userLedgerInvoices.size}`);
+
+  // Create invoices — one per ledger entry, tasks assigned chronologically
   section('Creating invoices for remaining tasks');
 
   const defaultBankSnapshot = JSON.stringify({
     bankName: 'Historical Migration',
     accountTitle: 'N/A',
     accountNumber: 'N/A',
-    note: 'Migrated from old Tasdeeq system (free/admin-given verifications)',
+    note: 'Migrated from old Tasdeeq system',
   });
 
   let invoicesCreated = 0;
@@ -174,75 +223,126 @@ async function main() {
     if (!tasks || tasks.length === 0) continue;
 
     const oldUserId = reverseCompanyMap[companyId];
-    const empPriceMap = oldUserId ? userPriceCache.get(oldUserId) : null;
+    const ledgerInvoices = oldUserId ? userLedgerInvoices.get(oldUserId) : null;
 
-    // Calculate per-task prices
-    let totalAmount = 0;
-    const taskPrices = [];
-    for (const task of tasks) {
-      let unitPrice = 0;
-      if (empPriceMap) {
-        const oldEmpId = reverseTaskMap[task.taskId];
-        if (oldEmpId) {
-          unitPrice = empPriceMap.get(oldEmpId) ?? 0;
+    let taskCursor = 0;
+
+    if (ledgerInvoices && ledgerInvoices.length > 0) {
+      // Create one invoice per ledger entry
+      for (const entry of ledgerInvoices) {
+        const assignedTasks = tasks.slice(taskCursor, taskCursor + entry.workerCount);
+        taskCursor += entry.workerCount;
+        if (assignedTasks.length === 0) continue;
+
+        let totalAmount = Math.min(entry.unitPrice * assignedTasks.length, 99999999);
+        const invoiceId = generateCuid();
+        const label = entry.type === 4 ? 'paid' : entry.type === 3 ? 'admin' : 'bonus';
+        const invoiceNumber = `MIG-${oldUserId}-free-${invoicesCreated}`;
+
+        try {
+          await newDb.query(`
+            INSERT INTO invoices (id, "invoiceNumber", "companyId", "createdById", status, "paymentMode",
+              "totalAmount", "bankDetailsSnapshot", "approvedAt", "approvedById", "createdAt", "updatedAt")
+            VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, $7, $8, $7, $7)
+          `, [invoiceId, invoiceNumber, companyId, SYSTEM_USER_ID,
+              totalAmount, defaultBankSnapshot, entry.date, SYSTEM_USER_ID]);
+          invoicesCreated++;
+
+          // Link tasks
+          const itemValues = [];
+          const itemParams = [];
+          let paramIdx = 1;
+          for (const task of assignedTasks) {
+            const itemId = generateCuid();
+            itemValues.push(`($${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++})`);
+            itemParams.push(itemId, invoiceId, task.taskId, entry.unitPrice, entry.date);
+          }
+          await newDb.query(`
+            INSERT INTO invoice_items (id, "invoiceId", "taskId", "unitPrice", "createdAt")
+            VALUES ${itemValues.join(', ')}
+            ON CONFLICT ("taskId") DO NOTHING
+          `, itemParams);
+          const taskIds = assignedTasks.map(t => t.taskId);
+          await newDb.query(`UPDATE verification_tasks SET "invoiceId" = $1 WHERE id = ANY($2::text[]) AND "invoiceId" IS NULL`, [invoiceId, taskIds]);
+          itemsCreated += assignedTasks.length;
+          tasksLinked += assignedTasks.length;
+        } catch (err) {
+          warn(`Error for company ${companyId} ledger entry: ${err.message}`);
         }
       }
-      unitPrice = Math.min(unitPrice, 99999999);
-      taskPrices.push({ taskId: task.taskId, unitPrice });
-      totalAmount += unitPrice;
     }
 
-    totalAmount = Math.min(totalAmount, 99999999);
+    // Any remaining tasks → group by exact date (day), use per-task pricing from ledger
+    const remainingTasks = tasks.slice(taskCursor);
+    if (remainingTasks.length > 0) {
+      const empPriceMap = oldUserId ? userPriceCache.get(oldUserId) : null;
 
-    const earliestDate = tasks.reduce((min, t) => {
-      const d = new Date(t.createdAt);
-      return d < min ? d : min;
-    }, new Date(tasks[0].createdAt));
-
-    const invoiceId = generateCuid();
-    const invoiceNumber = `MIG-${oldUserId || companyId.slice(0, 10)}-free`;
-
-    try {
-      await newDb.query(`
-        INSERT INTO invoices (id, "invoiceNumber", "companyId", "createdById", status, "paymentMode",
-          "totalAmount", "bankDetailsSnapshot", "approvedAt", "approvedById", "createdAt", "updatedAt")
-        VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, $7, $8, $7, $7)
-      `, [
-        invoiceId, invoiceNumber, companyId, SYSTEM_USER_ID,
-        totalAmount, defaultBankSnapshot,
-        earliestDate, SYSTEM_USER_ID,
-      ]);
-      invoicesCreated++;
-
-      // Create items and link tasks in batches
-      for (let i = 0; i < taskPrices.length; i += BATCH) {
-        const batch = taskPrices.slice(i, i + BATCH);
-        const itemValues = [];
-        const itemParams = [];
-        let paramIdx = 1;
-
-        for (const tp of batch) {
-          const itemId = generateCuid();
-          itemValues.push(`($${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++})`);
-          itemParams.push(itemId, invoiceId, tp.taskId, tp.unitPrice, earliestDate);
-        }
-
-        await newDb.query(`
-          INSERT INTO invoice_items (id, "invoiceId", "taskId", "unitPrice", "createdAt")
-          VALUES ${itemValues.join(', ')}
-          ON CONFLICT ("taskId") DO NOTHING
-        `, itemParams);
-
-        const taskIds = batch.map(b => b.taskId);
-        await newDb.query(`
-          UPDATE verification_tasks SET "invoiceId" = $1 WHERE id = ANY($2::text[]) AND "invoiceId" IS NULL
-        `, [invoiceId, taskIds]);
-
-        itemsCreated += batch.length;
-        tasksLinked += batch.length;
+      // Group by exact date YYYY-MM-DD
+      const byDate = {};
+      for (const task of remainingTasks) {
+        const d = new Date(task.createdAt);
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+        if (!byDate[key]) byDate[key] = [];
+        byDate[key].push(task);
       }
-    } catch (err) {
-      warn(`Error for company ${companyId}: ${err.message}`);
+
+      const sortedDates = Object.keys(byDate).sort();
+      for (const dateKey of sortedDates) {
+        const dateTasks = byDate[dateKey];
+        const invoiceId = generateCuid();
+        const invoiceNumber = `MIG-${oldUserId || companyId.slice(0, 10)}-free-${dateKey}`;
+        const invoiceDate = new Date(dateTasks[0].createdAt);
+
+        // Calculate per-task prices from ledger
+        let totalAmount = 0;
+        const taskPrices = [];
+        for (const task of dateTasks) {
+          let unitPrice = 0;
+          if (empPriceMap) {
+            const oldEmpId = reverseTaskMap[task.taskId];
+            if (oldEmpId) {
+              unitPrice = empPriceMap.get(oldEmpId) ?? 0;
+            }
+          }
+          unitPrice = Math.min(unitPrice, 99999999);
+          taskPrices.push({ taskId: task.taskId, unitPrice });
+          totalAmount += unitPrice;
+        }
+        totalAmount = Math.min(totalAmount, 99999999);
+
+        try {
+          await newDb.query(`
+            INSERT INTO invoices (id, "invoiceNumber", "companyId", "createdById", status, "paymentMode",
+              "totalAmount", "bankDetailsSnapshot", "approvedAt", "approvedById", "createdAt", "updatedAt")
+            VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, $7, $8, $7, $7)
+          `, [invoiceId, invoiceNumber, companyId, SYSTEM_USER_ID,
+              totalAmount, defaultBankSnapshot, invoiceDate, SYSTEM_USER_ID]);
+          invoicesCreated++;
+
+          for (let i = 0; i < taskPrices.length; i += BATCH) {
+            const batch = taskPrices.slice(i, i + BATCH);
+            const itemValues = [];
+            const itemParams = [];
+            let paramIdx = 1;
+            for (const tp of batch) {
+              const itemId = generateCuid();
+              itemValues.push(`($${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++}, $${paramIdx++})`);
+              itemParams.push(itemId, invoiceId, tp.taskId, tp.unitPrice, invoiceDate);
+            }
+            await newDb.query(`
+              INSERT INTO invoice_items (id, "invoiceId", "taskId", "unitPrice", "createdAt")
+              VALUES ${itemValues.join(', ')}
+              ON CONFLICT ("taskId") DO NOTHING
+            `, itemParams);
+            const taskIds = batch.map(tp => tp.taskId);
+            await newDb.query(`UPDATE verification_tasks SET "invoiceId" = $1 WHERE id = ANY($2::text[]) AND "invoiceId" IS NULL`, [invoiceId, taskIds]);
+            itemsCreated += batch.length;
+            tasksLinked += batch.length;
+          }
+        } catch (err) {
+          warn(`Error for company ${companyId} date ${dateKey}: ${err.message}`);
+        }
+      }
     }
 
     companiesProcessed++;
