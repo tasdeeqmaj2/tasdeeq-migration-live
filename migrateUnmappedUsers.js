@@ -319,7 +319,7 @@ async function main() {
           await client.query(`
             INSERT INTO invoices (id, "invoiceNumber", "companyId", "createdById", status, "paymentMode", "totalAmount", "bankDetailsSnapshot", "approvedAt", "approvedById", "createdAt", "updatedAt")
             VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, $7, $4, $7, $7)
-          `, [invoiceId, `MIG-${oldUserId}-${dateKey}`, companyId, SYSTEM_USER_ID, totalAmount, BANK_SNAPSHOT, invoiceDate]);
+          `, [invoiceId, `MIG-U-${oldUserId}-${dateKey}`, companyId, SYSTEM_USER_ID, totalAmount, BANK_SNAPSHOT, invoiceDate]);
 
           // Link tasks to invoice + create items
           for (const t of tasks) {
