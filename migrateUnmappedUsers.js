@@ -158,7 +158,7 @@ async function main() {
   const usedPhones = new Set(existingPhones.map(r => r.phone));
   info(`Existing phones in new DB: ${usedPhones.size}`);
 
-  // Migrate each unmapped user
+  // Migrate each unmapped user (with concurrency)
   section('Migrating unmapped users');
   let migrated = 0;
   let skipped = 0;
@@ -166,15 +166,15 @@ async function main() {
   let totalWorkers = 0;
   let totalTasks = 0;
   let totalInvoices = 0;
+  const CONCURRENCY = 10;
 
-  for (let idx = 0; idx < unmappedUsers.length; idx++) {
-    const oldUser = unmappedUsers[idx];
+  async function migrateOneUser(oldUser) {
     const oldUserId = Number(oldUser.id);
 
     // Skip if already done (resume)
     if (unmappedMap[oldUserId]) {
       skipped++;
-      continue;
+      return;
     }
 
     const client = await newDb.connect();
@@ -365,7 +365,7 @@ async function main() {
       };
       migrated++;
 
-      if ((migrated + skipped) % 500 === 0) {
+      if ((migrated + skipped) % 2000 === 0) {
         info(`  Progress: ${migrated + skipped}/${unmappedUsers.length} — migrated: ${migrated}, skipped (resume): ${skipped}, failed: ${failed}`);
         fs.writeFileSync(mapPath, JSON.stringify(unmappedMap, null, 2));
       }
@@ -376,6 +376,12 @@ async function main() {
     } finally {
       client.release();
     }
+  }
+
+  // Process in parallel batches of CONCURRENCY
+  for (let i = 0; i < unmappedUsers.length; i += CONCURRENCY) {
+    const batch = unmappedUsers.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map(u => migrateOneUser(u)));
   }
 
   // Final save
