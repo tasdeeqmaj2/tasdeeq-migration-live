@@ -20,14 +20,13 @@ async function main() {
   const newDb = getNewDb();
   const taskMap = loadMap(TASK_MAP_NAME);
 
-  // Find employments in old DB where all 3 statuses are NULL = truly pending
+  // Find employments in old DB where cplc_verification_status is 'pending'
+  // These were wrongly mapped as COMPLETED because the other columns have 'approved'
   const { rows } = await oldDb.query(`
     SELECT e.id
     FROM user_worker_employment e
     WHERE e.is_active = true
-      AND e.cplc_verification_status IS NULL
-      AND e.sindh_police_verification_status IS NULL
-      AND e.islamabad_police_verification_status IS NULL
+      AND e.cplc_verification_status = 'pending'
   `);
 
   info(`Found ${rows.length} employments with all-NULL statuses in old DB`);
