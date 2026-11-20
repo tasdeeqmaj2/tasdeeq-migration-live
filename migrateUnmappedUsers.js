@@ -124,22 +124,29 @@ async function main() {
   }
   info(`Users with invoices: ${Object.keys(invoicesByUser).length}`);
 
-  // Load verification_ledger prices for unmapped users
-  const priceByUser = {};
+  // Load verification_ledger consumption entries (types 3,4,5,6 = per-verification charges)
+  // sorted by date so we can pair them 1:1 with workers sorted by registration date
+  const consumptionByUser = {};
   for (let i = 0; i < unmappedIds.length; i += 5000) {
     const chunk = unmappedIds.slice(i, i + 5000);
     const { rows } = await oldDb.query(`
-      SELECT user_id, amount, quantity
+      SELECT user_id, amount, quantity, date
       FROM verification_ledger
-      WHERE user_id = ANY($1::bigint[]) AND transaction_type_id = 1
-      ORDER BY user_id
+      WHERE user_id = ANY($1::bigint[]) AND transaction_type_id IN (3, 4, 5, 6)
+      ORDER BY user_id, date ASC
     `, [chunk]);
     for (const r of rows) {
       const uid = Number(r.user_id);
-      if (!priceByUser[uid]) priceByUser[uid] = [];
-      priceByUser[uid].push(r);
+      if (!consumptionByUser[uid]) consumptionByUser[uid] = [];
+      // Expand bulk entries (qty > 1) into individual entries
+      const qty = Number(r.quantity) || 1;
+      const perUnit = qty > 0 ? Math.round((Number(r.amount) / qty) * 100) / 100 : 0;
+      for (let q = 0; q < qty; q++) {
+        consumptionByUser[uid].push({ price: perUnit, date: r.date });
+      }
     }
   }
+  info(`Users with consumption ledger entries: ${Object.keys(consumptionByUser).length}`);
 
   // Check existing emails in new DB to avoid conflicts
   section('Loading existing emails from new DB');
@@ -270,16 +277,27 @@ async function main() {
         totalTasks++;
       }
 
-      // 6. Create invoices grouped by date
+      // 6. Create invoices grouped by date with per-task pricing
       const taskIds = Object.values(tasksByEmp);
       if (taskIds.length > 0) {
-        // Calculate unit price from ledger
-        const ledgerEntries = priceByUser[oldUserId] || [];
-        let unitPrice = 0;
-        if (ledgerEntries.length > 0) {
-          const totalAmount = ledgerEntries.reduce((s, e) => s + Number(e.amount || 0), 0);
-          const totalQty = ledgerEntries.reduce((s, e) => s + Number(e.quantity || 0), 0);
-          if (totalQty > 0) unitPrice = Math.round((totalAmount / totalQty) * 100) / 100;
+        // Match each task to its consumption entry by date order
+        // Sort employments by registration date, consumption entries are already sorted by date
+        const sortedEmps = employments
+          .filter(e => tasksByEmp[Number(e.emp_id)])
+          .sort((a, b) => new Date(a.registration_timestamp || 0) - new Date(b.registration_timestamp || 0));
+        const consumptions = consumptionByUser[oldUserId] || [];
+
+        // Pair tasks with consumption entries 1:1 by chronological order
+        const taskPriceMap = {}; // taskId → unitPrice
+        for (let ti = 0; ti < sortedEmps.length; ti++) {
+          const emp = sortedEmps[ti];
+          const tid = tasksByEmp[Number(emp.emp_id)];
+          if (ti < consumptions.length) {
+            taskPriceMap[tid] = consumptions[ti].price;
+          } else {
+            // More tasks than consumption entries — use last known price or 0
+            taskPriceMap[tid] = consumptions.length > 0 ? consumptions[consumptions.length - 1].price : 0;
+          }
         }
 
         // Group tasks by date (from their employment registration_timestamp)
@@ -290,12 +308,12 @@ async function main() {
           const d = emp.registration_timestamp || oldUser.created_at || new Date();
           const dateKey = new Date(d).toISOString().slice(0, 10);
           if (!tasksByDate[dateKey]) tasksByDate[dateKey] = [];
-          tasksByDate[dateKey].push({ taskId: tid, date: d });
+          tasksByDate[dateKey].push({ taskId: tid, date: d, unitPrice: taskPriceMap[tid] || 0 });
         }
 
         for (const [dateKey, tasks] of Object.entries(tasksByDate)) {
           const invoiceId = createId();
-          const totalAmount = Math.min(tasks.length * unitPrice, 99999999);
+          const totalAmount = Math.min(tasks.reduce((s, t) => s + t.unitPrice, 0), 99999999);
           const invoiceDate = tasks[0].date;
 
           await client.query(`
@@ -313,7 +331,7 @@ async function main() {
               INSERT INTO invoice_items (id, "invoiceId", "taskId", "unitPrice", "createdAt")
               VALUES ($1, $2, $3, $4, $5)
               ON CONFLICT ("taskId") DO NOTHING
-            `, [createId(), invoiceId, t.taskId, unitPrice, invoiceDate]);
+            `, [createId(), invoiceId, t.taskId, t.unitPrice, invoiceDate]);
           }
 
           // Link receipt from receiptMap if available
