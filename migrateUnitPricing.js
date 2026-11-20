@@ -117,10 +117,10 @@ async function main() {
 
     // Get the user's employments ordered by date to match with ledger entries
     const { rows: oldEmployments } = await oldDb.query(`
-      SELECT id, date_timestamp
+      SELECT id, registration_timestamp
       FROM user_worker_employment
       WHERE user_id = $1
-      ORDER BY date_timestamp ASC, id ASC
+      ORDER BY registration_timestamp ASC, id ASC
     `, [Number(oldUserId)]);
 
     // Build a map: oldEmploymentId → price from ledger
@@ -147,7 +147,7 @@ async function main() {
     // Sort employments by date
     const sortedEmps = oldEmployments.map(e => ({
       id: Number(e.id),
-      date: new Date(e.date_timestamp),
+      date: new Date(e.registration_timestamp),
     })).sort((a, b) => a.date - b.date || a.id - b.id);
 
     // Zip: assign prices to employments in chronological order
