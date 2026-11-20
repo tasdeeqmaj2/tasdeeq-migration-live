@@ -138,6 +138,7 @@ async function loadEmploymentRows(oldDb, employmentIds) {
        w.date_of_birth,
        w.cnic_front_picture_link AS worker_cnic_front,
        w.cnic_back_picture_link AS worker_cnic_back,
+       w.picture_link AS worker_face_photo,
        w.city_id AS worker_city_id,
        w.province_id AS worker_province_id
      FROM user_worker_employment e
@@ -157,7 +158,8 @@ async function loadLatestDocsForEmployments(oldDb, employmentIds) {
     `SELECT DISTINCT ON (d.user_worker_employment_id)
        d.user_worker_employment_id AS employment_id,
        d.cnic_front_picture_link,
-       d.cnic_back_picture_link
+       d.cnic_back_picture_link,
+       d.picture_link
      FROM user_worker_employment_document d
      WHERE d.is_active IS DISTINCT FROM false
        AND d.user_worker_employment_id = ANY($1::bigint[])
@@ -266,6 +268,9 @@ async function migrateCriminalVerificationForms(systemUserId) {
       const cnicBack =
         normalizeLegacyFileRef(docs?.cnic_back_picture_link) ||
         normalizeLegacyFileRef(row.worker_cnic_back);
+      const facePhoto =
+        normalizeLegacyFileRef(docs?.picture_link) ||
+        normalizeLegacyFileRef(row.worker_face_photo);
       const cnicNumber =
         decryptLegacy(String(row.cnic).trim()) || '0000000000000';
 
@@ -299,6 +304,7 @@ async function migrateCriminalVerificationForms(systemUserId) {
           PLACEHOLDER_CNIC_EXPIRY,
           cnicFront,
           cnicBack,
+          facePhoto,
           address,
           address,
           finalCityId,
@@ -347,6 +353,7 @@ async function migrateCriminalVerificationForms(systemUserId) {
           '"cnicExpiry"',
           '"cnicFrontKey"',
           '"cnicBackKey"',
+          '"facePhotoKey"',
           '"currentAddress"',
           '"permanentAddress"',
           '"cityId"',

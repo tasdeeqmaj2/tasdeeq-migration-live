@@ -56,6 +56,9 @@ async function countPending(db) {
            OR
            ("cnicBackKey" IS NOT NULL AND btrim("cnicBackKey") <> ''
              AND ("cnicBackKey" ILIKE '%download-asset%' OR "cnicBackKey" ILIKE 'http%'))
+           OR
+           ("facePhotoKey" IS NOT NULL AND btrim("facePhotoKey") <> ''
+             AND ("facePhotoKey" ILIKE '%download-asset%' OR "facePhotoKey" ILIKE 'http%'))
          )) AS forms
   `);
   return r.rows[0];
@@ -156,11 +159,11 @@ async function processDocuments(db, stats) {
 }
 
 async function processForms(db, stats) {
-  section('Asset job: criminal_verification_forms CNIC keys');
+  section('Asset job: criminal_verification_forms CNIC + face photo keys');
   let lastId = '';
   for (;;) {
     const { rows } = await db.query(
-      `SELECT id, "cnicFrontKey", "cnicBackKey"
+      `SELECT id, "cnicFrontKey", "cnicBackKey", "facePhotoKey"
        FROM criminal_verification_forms
        WHERE id > $1
          AND (
@@ -169,6 +172,9 @@ async function processForms(db, stats) {
            OR
            ("cnicBackKey" IS NOT NULL AND btrim("cnicBackKey") <> ''
              AND ("cnicBackKey" ILIKE '%download-asset%' OR "cnicBackKey" ILIKE 'http%'))
+           OR
+           ("facePhotoKey" IS NOT NULL AND btrim("facePhotoKey") <> ''
+             AND ("facePhotoKey" ILIKE '%download-asset%' OR "facePhotoKey" ILIKE 'http%'))
          )
        ORDER BY id
        LIMIT $2`,
@@ -180,6 +186,7 @@ async function processForms(db, stats) {
     await mapPool(rows, getConcurrency(), async (row) => {
       let front = row.cnicFrontKey;
       let back = row.cnicBackKey;
+      let face = row.facePhotoKey;
       let changed = false;
 
       if (needsMigration(front)) {
@@ -212,12 +219,27 @@ async function processForms(db, stats) {
         }
       }
 
+      if (needsMigration(face)) {
+        const key = await migrateAsset(face, {
+          folder: 'face-photos',
+          migration: 'asset_job_forms',
+          oldId: row.id,
+          table: 'criminal_verification_forms',
+        });
+        if (key && key !== face) {
+          face = key;
+          changed = true;
+        } else if (needsMigration(row.facePhotoKey)) {
+          stats.failed += 1;
+        }
+      }
+
       if (changed) {
         await db.query(
           `UPDATE criminal_verification_forms
-           SET "cnicFrontKey" = $1, "cnicBackKey" = $2
-           WHERE id = $3`,
-          [front, back, row.id]
+           SET "cnicFrontKey" = $1, "cnicBackKey" = $2, "facePhotoKey" = $3
+           WHERE id = $4`,
+          [front, back, face, row.id]
         );
         stats.updated += 1;
       }

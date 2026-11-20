@@ -21,7 +21,8 @@ function mapStatus(...statuses) {
     .map((s) => String(s).toLowerCase())
     .join(' ');
 
-  if (!combined) return null;
+  // All statuses NULL = pending verification (never started)
+  if (!combined) return 'PENDING';
 
   if (/verified|approved|completed|success|clear|passed/.test(combined)) {
     return 'COMPLETED';
@@ -69,11 +70,6 @@ async function migrateVerificationTasks(systemUserId) {
          FROM user_worker_employment e
          WHERE e.is_active = true
            AND e.id > $1
-           AND (
-             e.cplc_verification_status IS NOT NULL
-             OR e.sindh_police_verification_status IS NOT NULL
-             OR e.islamabad_police_verification_status IS NOT NULL
-           )
          ORDER BY e.id
          LIMIT $2`,
         [lastId, limit]
