@@ -209,6 +209,12 @@ async function main() {
 
     if (taskPrices.length === 0) continue;
 
+    // Use the earliest task's createdAt as the invoice date
+    const earliestDate = tasks.reduce((min, t) => {
+      const d = new Date(t.createdAt);
+      return d < min ? d : min;
+    }, new Date(tasks[0].createdAt));
+
     // Create one invoice per company
     const invoiceId = generateCuid();
     const invoiceNumber = `MIG-${rawOldUserId || companyId}-${Date.now().toString(36)}`;
@@ -216,8 +222,8 @@ async function main() {
     await newDb.query(`
       INSERT INTO invoices (id, "invoiceNumber", "companyId", "createdById", status, "paymentMode",
         "totalAmount", "bankDetailsSnapshot", "approvedAt", "approvedById", "createdAt", "updatedAt")
-      VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, NOW(), $7, NOW(), NOW())
-    `, [invoiceId, invoiceNumber, companyId, SYSTEM_USER_ID, totalAmount, defaultBankSnapshot, SYSTEM_USER_ID]);
+      VALUES ($1, $2, $3, $4, 'APPROVED', 'PREPAID', $5, $6, $8, $7, $8, $8)
+    `, [invoiceId, invoiceNumber, companyId, SYSTEM_USER_ID, totalAmount, defaultBankSnapshot, SYSTEM_USER_ID, earliestDate]);
     invoicesCreated++;
 
     // Create invoice items and link tasks in batches
