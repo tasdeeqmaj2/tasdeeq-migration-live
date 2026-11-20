@@ -180,9 +180,14 @@ async function main() {
     let taskCursor = 0; // tracks which tasks have been assigned
 
     for (const oldInv of userInvoices) {
+      try {
       const workerCount = Math.max(Number(oldInv.worker_count) || 0, 0);
-      const totalAmount = Math.max(Number(oldInv.amount) || 0, 0);
-      const unitPrice = workerCount > 0 ? Math.round(totalAmount / workerCount) : 0;
+      let totalAmount = Math.max(Number(oldInv.amount) || 0, 0);
+      if (totalAmount > 99999999) {
+        warn(`Clamping old invoice ${oldInv.id} — amount ${totalAmount} → 99999999`);
+        totalAmount = 99999999;
+      }
+      const unitPrice = workerCount > 0 ? Math.min(Math.round(totalAmount / workerCount), 99999999) : 0;
       const invoiceDate = oldInv.date ? new Date(oldInv.date) : new Date();
       const status = mapStatus(oldInv.payment_status, oldInv.status);
 
@@ -236,6 +241,9 @@ async function main() {
           itemsCreated += batch.length;
           tasksLinked += batch.length;
         }
+      }
+      } catch (err) {
+        warn(`Error on old invoice ${oldInv.id} (user ${oldUserId}): ${err.message}`);
       }
     }
 
