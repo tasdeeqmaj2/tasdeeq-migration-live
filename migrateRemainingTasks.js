@@ -83,20 +83,18 @@ async function main() {
   }
 
   // Try to get unit prices from verification_ledger (public schema)
-  // type 3 = free given by admin, type 5 = bonus/promo
-  section('Loading verification_ledger for pricing hints');
+  section('Loading verification_ledger for pricing hints (bulk)');
 
-  // Build a cache of old user → per-employment price from ledger
-  // We'll use types 3, 4, 5 from public.verification_ledger
   const userPriceCache = new Map(); // oldUserId → Map(oldEmpId → unitPrice)
-
   const oldUserIds = [...new Set(companyIds.map(c => reverseCompanyMap[c]).filter(Boolean))];
-  info(`Old user IDs to look up in ledger: ${oldUserIds.length}`);
+  info(`Old user IDs to look up: ${oldUserIds.length}`);
 
-  // Process in chunks
-  for (let i = 0; i < oldUserIds.length; i += 200) {
-    const chunk = oldUserIds.slice(i, i + 200);
+  // Bulk load ALL ledger entries and employments in large chunks (2 queries per chunk, not per user)
+  const LEDGER_CHUNK = 5000;
+  for (let i = 0; i < oldUserIds.length; i += LEDGER_CHUNK) {
+    const chunk = oldUserIds.slice(i, i + LEDGER_CHUNK);
     try {
+      // Single bulk query for ledger
       const { rows: ledgerRows } = await oldDb.query(`
         SELECT user_id, quantity, amount, date
         FROM public.verification_ledger
@@ -104,24 +102,32 @@ async function main() {
         ORDER BY user_id, date ASC, id ASC
       `, [chunk]);
 
+      // Single bulk query for employments
+      const { rows: empRows } = await oldDb.query(`
+        SELECT user_id, id, registration_timestamp
+        FROM public.user_worker_employment
+        WHERE user_id = ANY($1::bigint[])
+        ORDER BY user_id, registration_timestamp ASC, id ASC
+      `, [chunk]);
+
       // Group by user
-      const byUser = {};
+      const ledgerByUser = {};
       for (const r of ledgerRows) {
         const uid = Number(r.user_id);
-        if (!byUser[uid]) byUser[uid] = [];
-        byUser[uid].push(r);
+        if (!ledgerByUser[uid]) ledgerByUser[uid] = [];
+        ledgerByUser[uid].push(r);
       }
 
-      for (const [uid, rows] of Object.entries(byUser)) {
-        // Get this user's employments sorted by date
-        const { rows: emps } = await oldDb.query(`
-          SELECT id, registration_timestamp
-          FROM public.user_worker_employment
-          WHERE user_id = $1
-          ORDER BY registration_timestamp ASC, id ASC
-        `, [Number(uid)]);
+      const empsByUser = {};
+      for (const r of empRows) {
+        const uid = Number(r.user_id);
+        if (!empsByUser[uid]) empsByUser[uid] = [];
+        empsByUser[uid].push(r);
+      }
 
-        // Build consumption timeline
+      // Zip per user
+      for (const [uid, rows] of Object.entries(ledgerByUser)) {
+        const emps = empsByUser[uid] || [];
         const consumptions = [];
         for (const r of rows) {
           const qty = Math.abs(Number(r.quantity) || 1);
@@ -131,16 +137,18 @@ async function main() {
             consumptions.push(unitPrice);
           }
         }
-
-        // Zip employments with prices
         const priceMap = new Map();
         for (let j = 0; j < emps.length && j < consumptions.length; j++) {
           priceMap.set(Number(emps[j].id), consumptions[j]);
         }
         userPriceCache.set(Number(uid), priceMap);
       }
+
+      if ((i + LEDGER_CHUNK) % 20000 === 0 || i + LEDGER_CHUNK >= oldUserIds.length) {
+        info(`  Ledger progress: ${Math.min(i + LEDGER_CHUNK, oldUserIds.length)}/${oldUserIds.length}`);
+      }
     } catch (err) {
-      warn(`Ledger lookup chunk error: ${err.message}`);
+      warn(`Ledger lookup chunk error at ${i}: ${err.message}`);
     }
   }
 
