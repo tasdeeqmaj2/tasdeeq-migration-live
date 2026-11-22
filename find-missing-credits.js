@@ -113,7 +113,7 @@ async function main() {
     // Method 1: userMap
     if (userMap[oldId]) {
       const newUserId = userMap[oldId];
-      const row = newPsql(`
+      const row = await queryNewDb(`
         SELECT c.id, c.name, COALESCE(c."creditLimit", 0)
         FROM companies c
         JOIN corporate_users cu ON cu."companyId" = c.id
@@ -130,7 +130,7 @@ async function main() {
 
     // Method 2: email match
     if (!companyId && email) {
-      const row = newPsql(`
+      const row = await queryNewDb(`
         SELECT c.id, c.name, COALESCE(c."creditLimit", 0)
         FROM companies c
         JOIN corporate_users cu ON cu."companyId" = c.id
@@ -148,7 +148,7 @@ async function main() {
 
     // Method 3: phone match
     if (!companyId && phone) {
-      const row = newPsql(`
+      const row = await queryNewDb(`
         SELECT c.id, c.name, COALESCE(c."creditLimit", 0)
         FROM companies c
         JOIN corporate_users cu ON cu."companyId" = c.id
@@ -216,6 +216,8 @@ async function main() {
     fs.writeFileSync(outPath2, JSON.stringify(notFound, null, 2));
     console.log(`\nSaved to ${outPath2}`);
   }
+
+  if (PROD && newDb) await newDb.end();
 }
 
 main().catch(err => {

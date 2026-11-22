@@ -1,32 +1,64 @@
+/**
+ * Add migration invoices for old-system consumed verifications.
+ * Creates "MIG-LEGACY-xxx" invoices so outstanding balance is tracked correctly.
+ *
+ * Usage:
+ *   node add_migration_invoices.js --dry-run          # preview (local docker)
+ *   node add_migration_invoices.js                    # apply (local docker)
+ *   node add_migration_invoices.js --dry-run --prod   # preview (production)
+ *   node add_migration_invoices.js --prod             # apply (production)
+ */
+
 const { execSync } = require('child_process');
 const report = require('./reconciliation_report.json');
 
 const DRY_RUN = process.argv.includes('--dry-run');
+const PROD = process.argv.includes('--prod');
 const ADMIN_ID = 'cmwjtczfx0000ql10mtmgx1ms';
 
-function psql(sql) {
-  const escaped = sql.replace(/'/g, "''").replace(/"/g, '\\"');
-  // Write SQL to temp file to avoid shell escaping issues
+function getDbUrl() {
+  if (PROD) {
+    require('dotenv').config();
+    const url = process.env.DATABASE_URL;
+    if (!url) { console.error('Set DATABASE_URL in .env for production'); process.exit(1); }
+    return url;
+  }
+  return null;
+}
+
+function psqlDirect(sql) {
+  if (PROD) {
+    const dbUrl = getDbUrl();
+    return execSync(
+      `psql "${dbUrl}" -t -A -c ${JSON.stringify(sql.replace(/\n/g, ' '))}`,
+      { encoding: 'utf8' }
+    ).trim();
+  }
+  return execSync(
+    `docker exec tasdeeq-postgres-1 psql -U postgres -d tasdeeq -t -c "${sql.replace(/"/g, '\\"')}"`,
+    { encoding: 'utf8' }
+  ).trim();
+}
+
+function psqlFile(sql) {
   const fs = require('fs');
   const os = require('os');
   const path = require('path');
   const tmpFile = path.join(os.tmpdir(), 'mig_invoice.sql');
+
+  if (PROD) {
+    const dbUrl = getDbUrl();
+    fs.writeFileSync(tmpFile, sql);
+    return execSync(`psql "${dbUrl}" -f "${tmpFile}"`, { encoding: 'utf8' }).trim();
+  }
+
   const containerTmp = '/tmp/mig_invoice.sql';
   fs.writeFileSync(tmpFile, sql);
   execSync(`docker cp "${tmpFile}" tasdeeq-postgres-1:${containerTmp}`);
-  const result = execSync(
-    `docker exec tasdeeq-postgres-1 psql -U postgres -d tasdeeq -t -f ${containerTmp}`,
+  return execSync(
+    `docker exec tasdeeq-postgres-1 psql -U postgres -d tasdeeq -f ${containerTmp}`,
     { encoding: 'utf8' }
-  );
-  return result.trim();
-}
-
-function psqlDirect(sql) {
-  const result = execSync(
-    `docker exec tasdeeq-postgres-1 psql -U postgres -d tasdeeq -t -c "${sql.replace(/"/g, '\\"')}"`,
-    { encoding: 'utf8' }
-  );
-  return result.trim();
+  ).trim();
 }
 
 function generateId() {
@@ -35,7 +67,7 @@ function generateId() {
 
 const usersWithConsumed = report.filter(x => x.ledgerConsumed > 0 && x.newCompanyId);
 
-console.log(`${DRY_RUN ? '[DRY RUN] ' : ''}Adding migration invoices for ${usersWithConsumed.length} users...\n`);
+console.log(`${DRY_RUN ? '[DRY RUN] ' : ''}${PROD ? '[PRODUCTION] ' : '[LOCAL] '}Adding migration invoices for ${usersWithConsumed.length} users...\n`);
 
 let created = 0;
 let skipped = 0;
@@ -44,17 +76,14 @@ let totalAmount = 0;
 for (const user of usersWithConsumed) {
   const invoiceNumber = `MIG-LEGACY-${user.oldUserId}`;
 
-  // Check if already exists
   const exists = psqlDirect(
     `SELECT COUNT(*) FROM invoices WHERE "invoiceNumber" = '${invoiceNumber}'`
   );
   if (parseInt(exists.trim()) > 0) {
-    console.log(`SKIP ${user.oldName} — ${invoiceNumber} already exists`);
     skipped++;
     continue;
   }
 
-  // Check company exists
   const companyExists = psqlDirect(
     `SELECT COUNT(*) FROM companies WHERE id = '${user.newCompanyId}'`
   );
@@ -67,7 +96,9 @@ for (const user of usersWithConsumed) {
   const id = generateId();
   const amount = user.ledgerConsumed;
 
-  console.log(`${DRY_RUN ? '[DRY] ' : ''}CREATE ${invoiceNumber} for ${user.oldName}: Rs. ${amount.toLocaleString()} (old system consumed)`);
+  if (created < 20 || amount > 50000) {
+    console.log(`${DRY_RUN ? '[DRY] ' : ''}CREATE ${invoiceNumber} for ${user.oldName}: Rs. ${amount.toLocaleString()}`);
+  }
 
   if (!DRY_RUN) {
     const sql = `INSERT INTO invoices (id, "invoiceNumber", "totalAmount", "companyId", "createdById", status, "paymentMode", "bankDetailsSnapshot", "createdAt", "updatedAt", "approvedAt")
@@ -84,17 +115,7 @@ VALUES (
   '2024-01-01 00:00:00',
   '2024-01-01 00:00:00'
 );`;
-    const fs = require('fs');
-    const os = require('os');
-    const path = require('path');
-    const tmpFile = path.join(os.tmpdir(), 'mig_invoice.sql');
-    const containerTmp = '/tmp/mig_invoice.sql';
-    fs.writeFileSync(tmpFile, sql);
-    execSync(`docker cp "${tmpFile}" tasdeeq-postgres-1:${containerTmp}`);
-    execSync(
-      `docker exec tasdeeq-postgres-1 psql -U postgres -d tasdeeq -f ${containerTmp}`,
-      { encoding: 'utf8' }
-    );
+    psqlFile(sql);
   }
 
   created++;
