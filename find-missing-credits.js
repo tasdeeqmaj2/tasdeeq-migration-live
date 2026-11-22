@@ -45,15 +45,17 @@ async function queryNewDb(sql) {
 async function main() {
   console.log(`${PROD ? '[PRODUCTION]' : '[LOCAL]'} mode\n`);
 
+  const sslOpts = PROD ? { rejectUnauthorized: false } : false;
+
   if (PROD) {
     if (!NEW_DB_URL) { console.error('Set NEW_DATABASE_URL or DATABASE_URL in .env'); process.exit(1); }
-    newDb = new Client({ connectionString: NEW_DB_URL });
+    newDb = new Client({ connectionString: NEW_DB_URL, ssl: sslOpts });
     await newDb.connect();
     console.log('Connected to new DB (pg client)');
   }
 
   // 1. Load old DB users with units
-  const oldDb = new Client({ connectionString: OLD_DB_URL });
+  const oldDb = new Client({ connectionString: OLD_DB_URL, ssl: sslOpts });
   await oldDb.connect();
   console.log('Connected to old DB');
 
