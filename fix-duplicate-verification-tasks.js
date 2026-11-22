@@ -109,18 +109,15 @@ async function main() {
     const keep = g.tasks[0];
     const toDelete = g.tasks.slice(1);
 
-    const safeToDelete = toDelete.filter(t => !t.hasInvoiceItem);
-    const unsafe = toDelete.filter(t => t.hasInvoiceItem);
-    totalSkippedInvoice += unsafe.length;
-
-    if (safeToDelete.length === 0) continue;
+    if (toDelete.length === 0) continue;
 
     if (shown < 20) {
-      console.log(`${DRY_RUN ? '[DRY] ' : ''}CNIC ${g.cnic} @ ${g.companyName}: keep ${keep.id} (${keep.status}), delete ${safeToDelete.length}${unsafe.length ? ` (${unsafe.length} skipped-invoiced)` : ''}`);
+      const invoiced = toDelete.filter(t => t.hasInvoiceItem).length;
+      console.log(`${DRY_RUN ? '[DRY] ' : ''}CNIC ${g.cnic} @ ${g.companyName}: keep ${keep.id} (${keep.status}), delete ${toDelete.length}${invoiced ? ` (${invoiced} with invoice items)` : ''}`);
       shown++;
     }
 
-    for (const t of safeToDelete) {
+    for (const t of toDelete) {
       allTaskIdsToDelete.push(t.id);
       if (t.workerId !== keep.workerId) {
         allOrphanWorkerIds.push(t.workerId);
@@ -131,8 +128,7 @@ async function main() {
   console.log(`\n=== SUMMARY ===`);
   console.log(`Duplicate groups: ${dupeGroups.length}`);
   console.log(`Tasks to delete: ${allTaskIdsToDelete.length}`);
-  console.log(`Skipped (invoiced): ${totalSkippedInvoice}`);
-  console.log(`Potential orphan workers: ${allOrphanWorkerIds.length}`);
+  console.log(`Potential orphan workers: ${[...new Set(allOrphanWorkerIds)].length}`);
 
   if (!DRY_RUN && allTaskIdsToDelete.length > 0) {
     console.log('\nDeleting in batches...');
@@ -142,6 +138,7 @@ async function main() {
       const chunk = allTaskIdsToDelete.slice(i, i + 200);
       const placeholders = chunk.map((_, idx) => `$${idx + 1}`).join(',');
 
+      await db.query(`DELETE FROM invoice_items WHERE "taskId" IN (${placeholders})`, chunk);
       await db.query(`DELETE FROM criminal_verification_forms WHERE "taskId" IN (${placeholders})`, chunk);
       await db.query(`DELETE FROM cplc_verification_reviews WHERE "taskId" IN (${placeholders})`, chunk);
       await db.query(`DELETE FROM verification_form_drafts WHERE "taskId" IN (${placeholders})`, chunk);
