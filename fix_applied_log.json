@@ -1,0 +1,348 @@
+{
+  "updated": [
+    {
+      "companyId": "cmwnhyigae003e8423ec9668a",
+      "companyName": "Shahzeb Ejaz",
+      "creditLimit": 45350,
+      "oldUserId": "332302",
+      "oldUnits": 981,
+      "ledgerBalance": 45350,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigqc448a509a1330861",
+      "companyName": "The Trust School",
+      "creditLimit": 17000,
+      "oldUserId": "373745",
+      "oldUnits": 75,
+      "ledgerBalance": 17000,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigd1dcbc0d198f332bc",
+      "companyName": "Chase Up",
+      "creditLimit": 16350,
+      "oldUserId": "348677",
+      "oldUnits": 254,
+      "ledgerBalance": 16350,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigg027929dae9021238",
+      "companyName": "Universal Packaging",
+      "creditLimit": 14500,
+      "oldUserId": "357095",
+      "oldUnits": 300,
+      "ledgerBalance": 14500,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig7123ab07fd01f15ed",
+      "companyName": "NAUMAN FAKHAR",
+      "creditLimit": 13850,
+      "oldUserId": "276036",
+      "oldUnits": 318,
+      "ledgerBalance": 13850,
+      "matchMethod": "phone"
+    },
+    {
+      "companyId": "cmwnhyiga2093de11c5501707",
+      "companyName": "Khadija",
+      "creditLimit": 10850,
+      "oldUserId": "335930",
+      "oldUnits": 238,
+      "ledgerBalance": 10850,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigad4fe13a5669a0eef",
+      "companyName": "Tafveez Amin",
+      "creditLimit": 6700,
+      "oldUserId": "338584",
+      "oldUnits": 150,
+      "ledgerBalance": 6700,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigea33072eafd3513af",
+      "companyName": "HUB",
+      "creditLimit": 6600,
+      "oldUserId": "349093",
+      "oldUnits": 25,
+      "ledgerBalance": 6600,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig9f347938363ac74b7",
+      "companyName": "Taj Corporation",
+      "creditLimit": 6150,
+      "oldUserId": "325542",
+      "oldUnits": 186,
+      "ledgerBalance": 6150,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyiga86cdcf01e7432b3f",
+      "companyName": "Shahid ur Rehman",
+      "creditLimit": 5900,
+      "oldUserId": "330451",
+      "oldUnits": 125,
+      "ledgerBalance": 5900,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigg3654110c8ba28141",
+      "companyName": "Paysys Labs Private Limited",
+      "creditLimit": 5400,
+      "oldUserId": "359097",
+      "oldUnits": 55,
+      "ledgerBalance": 5400,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigcf2bbab8cb0e36723",
+      "companyName": "Alpha Hundred brand name Jagah online",
+      "creditLimit": 5000,
+      "oldUserId": "346569",
+      "oldUnits": 100,
+      "ledgerBalance": 5000,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyige5950629cf2667d67",
+      "companyName": "Cashew Financial Services Limited",
+      "creditLimit": 5000,
+      "oldUserId": "351123",
+      "oldUnits": 100,
+      "ledgerBalance": 5000,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig9ce2192eb7716d87b",
+      "companyName": "Umer Ali Malik",
+      "creditLimit": 4950,
+      "oldUserId": "316889",
+      "oldUnits": 100,
+      "ledgerBalance": 4950,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigicbf0c096564ea85e",
+      "companyName": "Pixako Technologies (Pvt.) Ltd",
+      "creditLimit": 4400,
+      "oldUserId": "367617",
+      "oldUnits": 34,
+      "ledgerBalance": 4400,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig9bdd4cf2b692ae878",
+      "companyName": "Javed Akhter",
+      "creditLimit": 3400,
+      "oldUserId": "316684",
+      "oldUnits": 73,
+      "ledgerBalance": 3400,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigfc8d9707f2553c060",
+      "companyName": "Markaz Technologies",
+      "creditLimit": 3350,
+      "oldUserId": "353175",
+      "oldUnits": 72,
+      "ledgerBalance": 3350,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigb7d3df9624b0af087",
+      "companyName": "Mazhar Zia",
+      "creditLimit": 2350,
+      "oldUserId": "343218",
+      "oldUnits": 69,
+      "ledgerBalance": 2350,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig30078e7675714fbec",
+      "companyName": "Ayesha Ali",
+      "creditLimit": 800,
+      "oldUserId": "73880",
+      "oldUnits": 20,
+      "ledgerBalance": 800,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigf0d57ac20fdf5d068",
+      "companyName": "United King Foods Pvt Ltd",
+      "creditLimit": 750,
+      "oldUserId": "354451",
+      "oldUnits": 20,
+      "ledgerBalance": 750,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig81f4a1cacdb89e6d2",
+      "companyName": "CHAUDARY WALID MUSHTAQ",
+      "creditLimit": 650,
+      "oldUserId": "295230",
+      "oldUnits": 18,
+      "ledgerBalance": 650,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig6270ee1d6231614dd",
+      "companyName": "Habib Zaib",
+      "creditLimit": 600,
+      "oldUserId": "185339",
+      "oldUnits": 31,
+      "ledgerBalance": 600,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig9531ac93bdb4cac14",
+      "companyName": "Sami Shafi",
+      "creditLimit": 550,
+      "oldUserId": "311086",
+      "oldUnits": 16,
+      "ledgerBalance": 550,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwpco3cif3303f6a72752268",
+      "companyName": "amber",
+      "creditLimit": 500,
+      "oldUserId": "60849",
+      "oldUnits": 1,
+      "ledgerBalance": 500,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwpclee2d2d66cb8afbebbb9",
+      "companyName": "Majid Khan",
+      "creditLimit": 400,
+      "oldUserId": "55014",
+      "oldUnits": 1,
+      "ledgerBalance": 400,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwpcoqt2cfa46c77282df80f",
+      "companyName": "imran khan",
+      "creditLimit": 400,
+      "oldUserId": "65020",
+      "oldUnits": 1,
+      "ledgerBalance": 400,
+      "matchMethod": "phone"
+    },
+    {
+      "companyId": "cmwnhyig84adb30a870f3175a",
+      "companyName": "Sana Razzak Bari",
+      "creditLimit": 350,
+      "oldUserId": "304094",
+      "oldUnits": 10,
+      "ledgerBalance": 350,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigg4b66227e047fd6b3",
+      "companyName": "Unlayer Private Limited",
+      "creditLimit": 300,
+      "oldUserId": "359108",
+      "oldUnits": 22,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig922199288b440c906",
+      "companyName": "Muhammad Usama",
+      "creditLimit": 300,
+      "oldUserId": "324936",
+      "oldUnits": 17,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig33ae4feec91daf2ae",
+      "companyName": "Arsalan Bhatti",
+      "creditLimit": 300,
+      "oldUserId": "74646",
+      "oldUnits": 16,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyiga33b5b6e966df8cd0",
+      "companyName": "Mohammad Anwer",
+      "creditLimit": 300,
+      "oldUserId": "340088",
+      "oldUnits": 11,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigb838ea5eeaac2ce51",
+      "companyName": "Arslan Nazir",
+      "creditLimit": 300,
+      "oldUserId": "343952",
+      "oldUnits": 10,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwpckkp9626871005cbbe7e6",
+      "companyName": "Omar ",
+      "creditLimit": 300,
+      "oldUserId": "49495",
+      "oldUnits": 1,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwpcny1v0607125cc1b6fdb2",
+      "companyName": "Khizer saleem",
+      "creditLimit": 300,
+      "oldUserId": "59816",
+      "oldUnits": 1,
+      "ledgerBalance": 300,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyiggf08fda61891a4ced",
+      "companyName": "Character Education Foundation",
+      "creditLimit": 250,
+      "oldUserId": "358666",
+      "oldUnits": 10,
+      "ledgerBalance": 250,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyig8dc8499fef9365ce5",
+      "companyName": "Syed Talha Tanvir",
+      "creditLimit": 150,
+      "oldUserId": "303272",
+      "oldUnits": 17,
+      "ledgerBalance": 150,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigcc959cef5df3662ed",
+      "companyName": "Support Solutions Hub Pvt Ltd",
+      "creditLimit": 50,
+      "oldUserId": "346288",
+      "oldUnits": 1,
+      "ledgerBalance": 50,
+      "matchMethod": "email"
+    },
+    {
+      "companyId": "cmwnhyigf32ee0b70ce0de69d",
+      "companyName": "HashMaker Solutions",
+      "creditLimit": 50,
+      "oldUserId": "355784",
+      "oldUnits": 1,
+      "ledgerBalance": 50,
+      "matchMethod": "email"
+    }
+  ],
+  "skipped": [],
+  "errors": []
+}

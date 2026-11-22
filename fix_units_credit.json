@@ -1,0 +1,1386 @@
+[
+  {
+    "companyId": "cmwnsizza4aa8e893eeb6027b",
+    "oldUnits": 336,
+    "newCreditLimit": 168000,
+    "currentCreditLimit": 96900,
+    "oldUserId": "106729",
+    "name": "SAMI Pharmaceuticals"
+  },
+  {
+    "companyId": "cmwnhyigae003e8423ec9668a",
+    "oldUnits": 981,
+    "newCreditLimit": 490500,
+    "currentCreditLimit": 0,
+    "oldUserId": "332302",
+    "name": "Muhammad Basit Raza"
+  },
+  {
+    "companyId": "cmwnsiy2u2d8b1c2514cab954",
+    "oldUnits": 296,
+    "newCreditLimit": 148000,
+    "currentCreditLimit": 35300,
+    "oldUserId": "45459",
+    "name": "Kassim Pvt Ltd"
+  },
+  {
+    "companyId": "cmwnhyigqc448a509a1330861",
+    "oldUnits": 75,
+    "newCreditLimit": 37500,
+    "currentCreditLimit": 0,
+    "oldUserId": "373745",
+    "name": "The Trust School"
+  },
+  {
+    "companyId": "cmwnhyigd1dcbc0d198f332bc",
+    "oldUnits": 254,
+    "newCreditLimit": 127000,
+    "currentCreditLimit": 0,
+    "oldUserId": "348677",
+    "name": "Mudabbir Siddiqui"
+  },
+  {
+    "companyId": "cmwnhyigg027929dae9021238",
+    "oldUnits": 300,
+    "newCreditLimit": 150000,
+    "currentCreditLimit": 0,
+    "oldUserId": "357095",
+    "name": "Universal Packaging Company (Pvt.) Limited"
+  },
+  {
+    "companyId": "cmwnhyig7123ab07fd01f15ed",
+    "oldUnits": 318,
+    "newCreditLimit": 159000,
+    "currentCreditLimit": 0,
+    "oldUserId": "276036",
+    "name": "AGP Limited"
+  },
+  {
+    "companyId": "cmwnsiyei634e4b70b10d80c3",
+    "oldUnits": 348,
+    "newCreditLimit": 174000,
+    "currentCreditLimit": 11750,
+    "oldUserId": "57561",
+    "name": "Huzaifa Moin "
+  },
+  {
+    "companyId": "cmwnhyiga2093de11c5501707",
+    "oldUnits": 238,
+    "newCreditLimit": 119000,
+    "currentCreditLimit": 0,
+    "oldUserId": "335930",
+    "name": "Matco Foods"
+  },
+  {
+    "companyId": "cmwnhyigad4fe13a5669a0eef",
+    "oldUnits": 150,
+    "newCreditLimit": 75000,
+    "currentCreditLimit": 0,
+    "oldUserId": "338584",
+    "name": "Shabbir Tiles & Ceramics Limited"
+  },
+  {
+    "companyId": "cmwnhyigea33072eafd3513af",
+    "oldUnits": 25,
+    "newCreditLimit": 12500,
+    "currentCreditLimit": 0,
+    "oldUserId": "349093",
+    "name": "Muhammad Saeed"
+  },
+  {
+    "companyId": "cmwnsizdfa89cd76e6c7a5925",
+    "oldUnits": 18,
+    "newCreditLimit": 9000,
+    "currentCreditLimit": 6200,
+    "oldUserId": "84326",
+    "name": "Sajid Ali"
+  },
+  {
+    "companyId": "cmwnhyig9f347938363ac74b7",
+    "oldUnits": 186,
+    "newCreditLimit": 93000,
+    "currentCreditLimit": 0,
+    "oldUserId": "325542",
+    "name": "Taj Gasoline"
+  },
+  {
+    "companyId": "cmwnhyiga86cdcf01e7432b3f",
+    "oldUnits": 125,
+    "newCreditLimit": 62500,
+    "currentCreditLimit": 0,
+    "oldUserId": "330451",
+    "name": "Muhammad Tahir Manzoor"
+  },
+  {
+    "companyId": "cmwnhyigg3654110c8ba28141",
+    "oldUnits": 55,
+    "newCreditLimit": 27500,
+    "currentCreditLimit": 0,
+    "oldUserId": "359097",
+    "name": "Maryam Sikandar"
+  },
+  {
+    "companyId": "cmwnhyigcf2bbab8cb0e36723",
+    "oldUnits": 100,
+    "newCreditLimit": 50000,
+    "currentCreditLimit": 0,
+    "oldUserId": "346569",
+    "name": "Saad Bin Ahmed"
+  },
+  {
+    "companyId": "cmwnhyige5950629cf2667d67",
+    "oldUnits": 100,
+    "newCreditLimit": 50000,
+    "currentCreditLimit": 0,
+    "oldUserId": "351123",
+    "name": "Ammar Afif"
+  },
+  {
+    "companyId": "cmwnhyig9ce2192eb7716d87b",
+    "oldUnits": 100,
+    "newCreditLimit": 50000,
+    "currentCreditLimit": 0,
+    "oldUserId": "316889",
+    "name": "Winstore"
+  },
+  {
+    "companyId": "cmwnsiy3a64da216bcccc349a",
+    "oldUnits": 29,
+    "newCreditLimit": 14500,
+    "currentCreditLimit": 4950,
+    "oldUserId": "47395",
+    "name": "Syed Farhan Hussain"
+  },
+  {
+    "companyId": "cmwnhyigicbf0c096564ea85e",
+    "oldUnits": 34,
+    "newCreditLimit": 17000,
+    "currentCreditLimit": 0,
+    "oldUserId": "367617",
+    "name": "Zahira Rauf"
+  },
+  {
+    "companyId": "cmwnsiyuk7c66a43b43160002",
+    "oldUnits": 100,
+    "newCreditLimit": 50000,
+    "currentCreditLimit": 3900,
+    "oldUserId": "70605",
+    "name": "Khalid Anwer "
+  },
+  {
+    "companyId": "cmwnhyig9bdd4cf2b692ae878",
+    "oldUnits": 73,
+    "newCreditLimit": 36500,
+    "currentCreditLimit": 0,
+    "oldUserId": "316684",
+    "name": "Trax Online Private Limited"
+  },
+  {
+    "companyId": "cmwnhyigfc8d9707f2553c060",
+    "oldUnits": 72,
+    "newCreditLimit": 36000,
+    "currentCreditLimit": 0,
+    "oldUserId": "353175",
+    "name": "Amna Tahir"
+  },
+  {
+    "companyId": "cmwnsiyv1ea3fe790fe860cf5",
+    "oldUnits": 10,
+    "newCreditLimit": 5000,
+    "currentCreditLimit": 3150,
+    "oldUserId": "75417",
+    "name": "m haris jaffrani"
+  },
+  {
+    "companyId": "cmwnsiy2w9f34b8b1c8748966",
+    "oldUnits": 9,
+    "newCreditLimit": 4500,
+    "currentCreditLimit": 2700,
+    "oldUserId": "45513",
+    "name": "abdul karim"
+  },
+  {
+    "companyId": "cmwnsiy2f5edf0efac86471b3",
+    "oldUnits": 6,
+    "newCreditLimit": 3000,
+    "currentCreditLimit": 2550,
+    "oldUserId": "44225",
+    "name": "Ahmedyar Janjua"
+  },
+  {
+    "companyId": "cmwnhyigb7d3df9624b0af087",
+    "oldUnits": 69,
+    "newCreditLimit": 34500,
+    "currentCreditLimit": 0,
+    "oldUserId": "343218",
+    "name": "Thal Engineering "
+  },
+  {
+    "companyId": "cmwnsizzcc803931cfc8f9d96",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 1900,
+    "oldUserId": "107499",
+    "name": "rehan soni"
+  },
+  {
+    "companyId": "cmwnsiyv9c582ef1251671bc2",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 1600,
+    "oldUserId": "77321",
+    "name": "hammad raza "
+  },
+  {
+    "companyId": "cmwnsiy3hd48256cd48ba4342",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 1200,
+    "oldUserId": "48037",
+    "name": "wajid shafi"
+  },
+  {
+    "companyId": "cmwnsiyfkb059e53fce465a0c",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 1200,
+    "oldUserId": "63822",
+    "name": "Sanaullah Abdullah"
+  },
+  {
+    "companyId": "cmwnsiyv01f9054fc36f7d388",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 1000,
+    "oldUserId": "75203",
+    "name": "Muhammad Hanif "
+  },
+  {
+    "companyId": "cmwnsiy4550416401102490bb",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 950,
+    "oldUserId": "52740",
+    "name": "Ahmed Faraz Hyder"
+  },
+  {
+    "companyId": "cmwnsizqncea340eb7bece8bd",
+    "oldUnits": 95,
+    "newCreditLimit": 47500,
+    "currentCreditLimit": 900,
+    "oldUserId": "91497",
+    "name": "Alwisha Lateef"
+  },
+  {
+    "companyId": "cmwnsizde214bff92317cbda6",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 900,
+    "oldUserId": "83439",
+    "name": "Nauman Naseer"
+  },
+  {
+    "companyId": "cmwnsiy2s32143f20005860b0",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 900,
+    "oldUserId": "45288",
+    "name": "Sheikh Mahmood Akhtar "
+  },
+  {
+    "companyId": "cmwnhyig30078e7675714fbec",
+    "oldUnits": 20,
+    "newCreditLimit": 10000,
+    "currentCreditLimit": 0,
+    "oldUserId": "73880",
+    "name": "Astral Constructors "
+  },
+  {
+    "companyId": "cmwnhyigf0d57ac20fdf5d068",
+    "oldUnits": 20,
+    "newCreditLimit": 10000,
+    "currentCreditLimit": 0,
+    "oldUserId": "354451",
+    "name": "Arif Azeemi"
+  },
+  {
+    "companyId": "cmwnsj08n5b76cda30a6fa1ab",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 750,
+    "oldUserId": "119818",
+    "name": "Hamza ali khan"
+  },
+  {
+    "companyId": "cmwnhyig81f4a1cacdb89e6d2",
+    "oldUnits": 18,
+    "newCreditLimit": 9000,
+    "currentCreditLimit": 0,
+    "oldUserId": "295230",
+    "name": "Roots International Schools & Colleges"
+  },
+  {
+    "companyId": "cmwnhyig6270ee1d6231614dd",
+    "oldUnits": 31,
+    "newCreditLimit": 15500,
+    "currentCreditLimit": 0,
+    "oldUserId": "185339",
+    "name": "Chase Department Store"
+  },
+  {
+    "companyId": "cmwnsiy4b649a69ccf439664a",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 600,
+    "oldUserId": "53972",
+    "name": "Rashid Ali Mughal"
+  },
+  {
+    "companyId": "cmwnhyig9531ac93bdb4cac14",
+    "oldUnits": 16,
+    "newCreditLimit": 8000,
+    "currentCreditLimit": 0,
+    "oldUserId": "311086",
+    "name": "DCC Consultants SMC Private Limited"
+  },
+  {
+    "companyId": "cmwpco3cif3303f6a72752268",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "60849",
+    "name": "amber"
+  },
+  {
+    "companyId": "cmwnsiyun53ed91bf4ba03b13",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 400,
+    "oldUserId": "71401",
+    "name": "Mansoor Hayat"
+  },
+  {
+    "companyId": "cmwpclee2d2d66cb8afbebbb9",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "55014",
+    "name": "Majid Khan"
+  },
+  {
+    "companyId": "cmwnsiy3u1998c6ebb4d09ab0",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 400,
+    "oldUserId": "50744",
+    "name": "ASIF UDDIN "
+  },
+  {
+    "companyId": "cmwnsizqieab65f18ebf41102",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 400,
+    "oldUserId": "89628",
+    "name": "Shahin Khattak "
+  },
+  {
+    "companyId": "cmwpd4rd5294c3e42884d992e",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 400,
+    "oldUserId": "90491",
+    "name": "Yahya"
+  },
+  {
+    "companyId": "cmwpd6xpe4664fbffbec7eabe",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 400,
+    "oldUserId": "101459",
+    "name": "Basit Ali"
+  },
+  {
+    "companyId": "cmwpcoqt2cfa46c77282df80f",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "65020",
+    "name": "imran khan"
+  },
+  {
+    "companyId": "cmwnhyig84adb30a870f3175a",
+    "oldUnits": 10,
+    "newCreditLimit": 5000,
+    "currentCreditLimit": 0,
+    "oldUserId": "304094",
+    "name": "International Steels Limited"
+  },
+  {
+    "companyId": "cmwnhyigg4b66227e047fd6b3",
+    "oldUnits": 22,
+    "newCreditLimit": 11000,
+    "currentCreditLimit": 0,
+    "oldUserId": "359108",
+    "name": "Waleed Tallat"
+  },
+  {
+    "companyId": "cmwnhyig922199288b440c906",
+    "oldUnits": 17,
+    "newCreditLimit": 8500,
+    "currentCreditLimit": 0,
+    "oldUserId": "324936",
+    "name": "Kiran Foundation"
+  },
+  {
+    "companyId": "cmwnhyig33ae4feec91daf2ae",
+    "oldUnits": 16,
+    "newCreditLimit": 8000,
+    "currentCreditLimit": 0,
+    "oldUserId": "74646",
+    "name": "HRSG Outsourcing Pvt Limited"
+  },
+  {
+    "companyId": "cmwnhyiga33b5b6e966df8cd0",
+    "oldUnits": 11,
+    "newCreditLimit": 5500,
+    "currentCreditLimit": 0,
+    "oldUserId": "340088",
+    "name": "Prime Engineering Application Services"
+  },
+  {
+    "companyId": "cmwnhyigb838ea5eeaac2ce51",
+    "oldUnits": 10,
+    "newCreditLimit": 5000,
+    "currentCreditLimit": 0,
+    "oldUserId": "343952",
+    "name": "Shophive"
+  },
+  {
+    "companyId": "cmwnsiyfp1aefd2c764912f74",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 300,
+    "oldUserId": "65106",
+    "name": "M Ali Ansari "
+  },
+  {
+    "companyId": "cmwpckkp9626871005cbbe7e6",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "49495",
+    "name": "Omar "
+  },
+  {
+    "companyId": "cmwpd4e2k1ec6f335fe73cbd0",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "88410",
+    "name": "Waqas ul Hasan"
+  },
+  {
+    "companyId": "cmwnsiyfl950d23b3bb8a3186",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "64117",
+    "name": "Arif"
+  },
+  {
+    "companyId": "cmwnsizcz1207d5c2840a30d4",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "78274",
+    "name": "Muhammad Yousaf"
+  },
+  {
+    "companyId": "cmwnsizzj6e52d4ec60aff7c3",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "110951",
+    "name": "AD"
+  },
+  {
+    "companyId": "cmwpcny1v0607125cc1b6fdb2",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "59816",
+    "name": "Khizer saleem"
+  },
+  {
+    "companyId": "cmwnsiyfy2d0f8b55676fdf42",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "67572",
+    "name": "Ayesha Farooqui "
+  },
+  {
+    "companyId": "cmwpcykelac6548a030c7fb9f",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 300,
+    "oldUserId": "67746",
+    "name": "Tahir Hussain"
+  },
+  {
+    "companyId": "cmwnsizdma93b8fae188f26e6",
+    "oldUnits": 63,
+    "newCreditLimit": 31500,
+    "currentCreditLimit": 250,
+    "oldUserId": "86644",
+    "name": "Faisal Industries "
+  },
+  {
+    "companyId": "cmwnhyiggf08fda61891a4ced",
+    "oldUnits": 10,
+    "newCreditLimit": 5000,
+    "currentCreditLimit": 0,
+    "oldUserId": "358666",
+    "name": "Mahmood Ahmed"
+  },
+  {
+    "companyId": "cmwnsj0h9e512c9c54310b138",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 250,
+    "oldUserId": "144028",
+    "name": "Muhammad Nadeem"
+  },
+  {
+    "companyId": "cmwnsizr3e9616525745557a6",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 200,
+    "oldUserId": "97082",
+    "name": "uzair"
+  },
+  {
+    "companyId": "cmwnsiyva4669ed9332206d56",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 200,
+    "oldUserId": "77626",
+    "name": "m ashfaq"
+  },
+  {
+    "companyId": "cmwnhyig8dc8499fef9365ce5",
+    "oldUnits": 17,
+    "newCreditLimit": 8500,
+    "currentCreditLimit": 0,
+    "oldUserId": "303272",
+    "name": "Al Baraka Apparel  Diners"
+  },
+  {
+    "companyId": "cmwnsiyf505c393abb324a266",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 100,
+    "oldUserId": "61076",
+    "name": "Farhaj Aulakh"
+  },
+  {
+    "companyId": "cmwnsizqm0a7e5d6c1c99636d",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 100,
+    "oldUserId": "91429",
+    "name": "Abdullah Tariq"
+  },
+  {
+    "companyId": "cmwnhyigcc959cef5df3662ed",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "346288",
+    "name": "Hamza Javaid"
+  },
+  {
+    "companyId": "cmwnhyigf32ee0b70ce0de69d",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "355784",
+    "name": "Mariam Khan"
+  },
+  {
+    "companyId": "cmwnhyig9e7c9ef5b8287cf61",
+    "oldUnits": 3844,
+    "newCreditLimit": 1922000,
+    "currentCreditLimit": 0,
+    "oldUserId": "328600",
+    "name": "Mindbridge"
+  },
+  {
+    "companyId": "cmwnhyifyc18620bc14f11488",
+    "oldUnits": 396,
+    "newCreditLimit": 198000,
+    "currentCreditLimit": 500,
+    "oldUserId": "56137",
+    "name": "Osama Moin Moin Chawla"
+  },
+  {
+    "companyId": "cmwnhyigd2e4670ffe1cf5e2a",
+    "oldUnits": 134,
+    "newCreditLimit": 67000,
+    "currentCreditLimit": 0,
+    "oldUserId": "348217",
+    "name": "Rabia Siraj"
+  },
+  {
+    "companyId": "cmwnhyig983e32028d8cc2a32",
+    "oldUnits": 74,
+    "newCreditLimit": 37000,
+    "currentCreditLimit": 0,
+    "oldUserId": "313417",
+    "name": "Idenfo Ltd"
+  },
+  {
+    "companyId": "cmwpdvbwk4dcee0d16c142dc7",
+    "oldUnits": 64,
+    "newCreditLimit": 32000,
+    "currentCreditLimit": 0,
+    "oldUserId": "345223",
+    "name": "eshifa"
+  },
+  {
+    "companyId": "cmwnhyig8c203daf8c759e86a",
+    "oldUnits": 64,
+    "newCreditLimit": 32000,
+    "currentCreditLimit": 0,
+    "oldUserId": "286162",
+    "name": "HG Markets Pvt Limited"
+  },
+  {
+    "companyId": "cmwnhyig8264c94e626b78122",
+    "oldUnits": 55,
+    "newCreditLimit": 27500,
+    "currentCreditLimit": 0,
+    "oldUserId": "298301",
+    "name": "Ultra Security Company (Pvt.) Ltd."
+  },
+  {
+    "companyId": "cmwnhyig97b3441eb21f06026",
+    "oldUnits": 51,
+    "newCreditLimit": 25500,
+    "currentCreditLimit": 0,
+    "oldUserId": "326557",
+    "name": "Rajby Industries"
+  },
+  {
+    "companyId": "cmwnhyig9439af96b91307b7d",
+    "oldUnits": 45,
+    "newCreditLimit": 22500,
+    "currentCreditLimit": 0,
+    "oldUserId": "311388",
+    "name": "Premier Sales Private Limited"
+  },
+  {
+    "companyId": "cmwnsiy3zdee0360e35650725",
+    "oldUnits": 39,
+    "newCreditLimit": 19500,
+    "currentCreditLimit": 0,
+    "oldUserId": "51095",
+    "name": "Abdullah Khan"
+  },
+  {
+    "companyId": "cmwnhyigg0c21bb2d2c36c15e",
+    "oldUnits": 39,
+    "newCreditLimit": 19500,
+    "currentCreditLimit": 0,
+    "oldUserId": "357195",
+    "name": "Raza Ahmed"
+  },
+  {
+    "companyId": "cmwnhyig7cd9aecc843a161df",
+    "oldUnits": 35,
+    "newCreditLimit": 17500,
+    "currentCreditLimit": 0,
+    "oldUserId": "273560",
+    "name": "Zakir Tikka Phase 6"
+  },
+  {
+    "companyId": "cmwnhyig8edd7ef712a925f3a",
+    "oldUnits": 28,
+    "newCreditLimit": 14000,
+    "currentCreditLimit": 0,
+    "oldUserId": "306861",
+    "name": "Oar Services Pvt Limited"
+  },
+  {
+    "companyId": "cmwnsiy4hdcbb6b8168d2f0bb",
+    "oldUnits": 27,
+    "newCreditLimit": 13500,
+    "currentCreditLimit": 0,
+    "oldUserId": "55033",
+    "name": "Zain Shahid"
+  },
+  {
+    "companyId": "cmwnhyigaad56354783df5559",
+    "oldUnits": 26,
+    "newCreditLimit": 13000,
+    "currentCreditLimit": 0,
+    "oldUserId": "329679",
+    "name": "Bannu Woollen Mills Limited"
+  },
+  {
+    "companyId": "cmwnhyigbff8e0c6b00bf6f12",
+    "oldUnits": 24,
+    "newCreditLimit": 12000,
+    "currentCreditLimit": 0,
+    "oldUserId": "341684",
+    "name": "Trans World Associates"
+  },
+  {
+    "companyId": "cmwnhyig8dab4834aa8f43222",
+    "oldUnits": 24,
+    "newCreditLimit": 12000,
+    "currentCreditLimit": 0,
+    "oldUserId": "279328",
+    "name": "Nutshell Solutions Private Limited"
+  },
+  {
+    "companyId": "cmwnhyige4a066d245cc5e7b4",
+    "oldUnits": 21,
+    "newCreditLimit": 10500,
+    "currentCreditLimit": 0,
+    "oldUserId": "349559",
+    "name": "Aneela Mahmood"
+  },
+  {
+    "companyId": "cmwnhyige5287d449ce601d8d",
+    "oldUnits": 21,
+    "newCreditLimit": 10500,
+    "currentCreditLimit": 0,
+    "oldUserId": "349206",
+    "name": "Usman Farooqi"
+  },
+  {
+    "companyId": "cmwnhyigb49fbc9665e8039e0",
+    "oldUnits": 19,
+    "newCreditLimit": 9500,
+    "currentCreditLimit": 0,
+    "oldUserId": "343321",
+    "name": "Zindagi Trust"
+  },
+  {
+    "companyId": "cmwnsiy4eeccb478261645b10",
+    "oldUnits": 18,
+    "newCreditLimit": 9000,
+    "currentCreditLimit": 0,
+    "oldUserId": "54602",
+    "name": "Uzair Wahid"
+  },
+  {
+    "companyId": "cmwnsiy2j732fa7bad44df1c0",
+    "oldUnits": 17,
+    "newCreditLimit": 8500,
+    "currentCreditLimit": 0,
+    "oldUserId": "44484",
+    "name": "Murtaza Hashmi"
+  },
+  {
+    "companyId": "cmwnhyig445ce706672d0ba9b",
+    "oldUnits": 17,
+    "newCreditLimit": 8500,
+    "currentCreditLimit": 0,
+    "oldUserId": "86508",
+    "name": "Kohat Cement Company Limited"
+  },
+  {
+    "companyId": "cmwnhyig9daf63e115a1a6ece",
+    "oldUnits": 16,
+    "newCreditLimit": 8000,
+    "currentCreditLimit": 0,
+    "oldUserId": "326332",
+    "name": "DINCLOUD PAKISTAN PRIVATE LIMITED"
+  },
+  {
+    "companyId": "cmwnhyig66a5e8fba5007d2a2",
+    "oldUnits": 15,
+    "newCreditLimit": 7500,
+    "currentCreditLimit": 0,
+    "oldUserId": "168031",
+    "name": "Corporate Bridge of Risk Management Pvt Ltd"
+  },
+  {
+    "companyId": "cmwnhyigc9acefa9bf09593c1",
+    "oldUnits": 15,
+    "newCreditLimit": 7500,
+    "currentCreditLimit": 0,
+    "oldUserId": "347396",
+    "name": "Haris Jawaid"
+  },
+  {
+    "companyId": "cmwnhyig8edf1113759cf6ab1",
+    "oldUnits": 14,
+    "newCreditLimit": 7000,
+    "currentCreditLimit": 0,
+    "oldUserId": "307094",
+    "name": "NIzam Sons"
+  },
+  {
+    "companyId": "cmwnsiyuh239345aaaa44789e",
+    "oldUnits": 13,
+    "newCreditLimit": 6500,
+    "currentCreditLimit": 0,
+    "oldUserId": "69388",
+    "name": "ABDUL SATTAR"
+  },
+  {
+    "companyId": "cmwnsizd54ff1adf2fc951161",
+    "oldUnits": 11,
+    "newCreditLimit": 5500,
+    "currentCreditLimit": 0,
+    "oldUserId": "80384",
+    "name": "Atif Akmal"
+  },
+  {
+    "companyId": "cmwnhyig8e566d4064c1c4977",
+    "oldUnits": 11,
+    "newCreditLimit": 5500,
+    "currentCreditLimit": 0,
+    "oldUserId": "305517",
+    "name": "Macpac Films Ltd"
+  },
+  {
+    "companyId": "cmwnhyig8188b8ceeb4bdd2a6",
+    "oldUnits": 9,
+    "newCreditLimit": 4500,
+    "currentCreditLimit": 0,
+    "oldUserId": "290704",
+    "name": "Al Razzaq Fibres PVT Limited"
+  },
+  {
+    "companyId": "cmwnsiy42c72193a24c5fa1c4",
+    "oldUnits": 9,
+    "newCreditLimit": 4500,
+    "currentCreditLimit": 0,
+    "oldUserId": "51513",
+    "name": "Zafar Ayub"
+  },
+  {
+    "companyId": "cmwnhyigg93320d7eca3b3d9f",
+    "oldUnits": 8,
+    "newCreditLimit": 4000,
+    "currentCreditLimit": 0,
+    "oldUserId": "358890",
+    "name": "Muzammil"
+  },
+  {
+    "companyId": "cmwnhyig5c2bd6b024189ba0c",
+    "oldUnits": 8,
+    "newCreditLimit": 4000,
+    "currentCreditLimit": 0,
+    "oldUserId": "131946",
+    "name": "Imtiaz Stores"
+  },
+  {
+    "companyId": "cmwnhyige5aa3536140188b6b",
+    "oldUnits": 8,
+    "newCreditLimit": 4000,
+    "currentCreditLimit": 0,
+    "oldUserId": "351755",
+    "name": "Syed Saad Ali"
+  },
+  {
+    "companyId": "cmwnsiyuta2170b515c67ee25",
+    "oldUnits": 7,
+    "newCreditLimit": 3500,
+    "currentCreditLimit": 0,
+    "oldUserId": "73119",
+    "name": "Masood Alam"
+  },
+  {
+    "companyId": "cmwnhyig9ee4cab9c08e7691d",
+    "oldUnits": 7,
+    "newCreditLimit": 3500,
+    "currentCreditLimit": 0,
+    "oldUserId": "315015",
+    "name": "The Handyman"
+  },
+  {
+    "companyId": "cmwnhyig5bec90383352e27e4",
+    "oldUnits": 7,
+    "newCreditLimit": 3500,
+    "currentCreditLimit": 0,
+    "oldUserId": "103313",
+    "name": "FIXDAR"
+  },
+  {
+    "companyId": "cmwnhyig81b550c2077c3ce5b",
+    "oldUnits": 7,
+    "newCreditLimit": 3500,
+    "currentCreditLimit": 0,
+    "oldUserId": "293096",
+    "name": "Pasha Marbles"
+  },
+  {
+    "companyId": "cmwnhyig83adb50514a2e040f",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "294506",
+    "name": "Lettus Kitchens"
+  },
+  {
+    "companyId": "cmwnhyigcd3debe4904d4810e",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "346272",
+    "name": "Support Solutions Hub Pvt Ltd"
+  },
+  {
+    "companyId": "cmwnhyigbd6ecfa85e8ed7da2",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "340637",
+    "name": "Structure Solutions"
+  },
+  {
+    "companyId": "cmwnhyig99b90883c829e480e",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "314971",
+    "name": "Human Resource Solutions International"
+  },
+  {
+    "companyId": "cmwnhyigic71339662b670e1b",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "366792",
+    "name": "Sajjad Mehmood"
+  },
+  {
+    "companyId": "cmwnsiyfm0c74a52e520fae25",
+    "oldUnits": 5,
+    "newCreditLimit": 2500,
+    "currentCreditLimit": 0,
+    "oldUserId": "64252",
+    "name": "Muhammad Arsalan"
+  },
+  {
+    "companyId": "cmwnhyifz7da948695d46afa1",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 0,
+    "oldUserId": "60136",
+    "name": "Naval Anchorage Islamabad"
+  },
+  {
+    "companyId": "cmwnhyigba799cc05a9583403",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 0,
+    "oldUserId": "345321",
+    "name": "Osama Moin chawla"
+  },
+  {
+    "companyId": "cmwnhyigh61513ce393452b2f",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 0,
+    "oldUserId": "362025",
+    "name": "Taskeen Zahra"
+  },
+  {
+    "companyId": "cmwnhyigabe763b3ba1f6a7e6",
+    "oldUnits": 4,
+    "newCreditLimit": 2000,
+    "currentCreditLimit": 0,
+    "oldUserId": "330526",
+    "name": "Integry Solutions Pvt SMC LTD"
+  },
+  {
+    "companyId": "cmwnhyig28cfd2fa147d23d4c",
+    "oldUnits": 3,
+    "newCreditLimit": 1500,
+    "currentCreditLimit": 0,
+    "oldUserId": "73467",
+    "name": "Muhammad Fawad Sharif Umar Sharif Bhatti"
+  },
+  {
+    "companyId": "cmwnhyig8139d8ea24284aea8",
+    "oldUnits": 3,
+    "newCreditLimit": 1500,
+    "currentCreditLimit": 0,
+    "oldUserId": "293103",
+    "name": "Al Farooq Builders"
+  },
+  {
+    "companyId": "cmwnhyigh34f77ec90e03b225",
+    "oldUnits": 3,
+    "newCreditLimit": 1500,
+    "currentCreditLimit": 0,
+    "oldUserId": "359220",
+    "name": "faheem@alistgroup.ca"
+  },
+  {
+    "companyId": "cmwnhyigh1c9cbd99368c819a",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "363852",
+    "name": "Bilal Khan"
+  },
+  {
+    "companyId": "cmwpdw5q9c271f523285ab27b",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "53162",
+    "name": "Nouman"
+  },
+  {
+    "companyId": "cmwnhyig88a5e90f49962cbc6",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "300953",
+    "name": "Adamjee Enterprises"
+  },
+  {
+    "companyId": "cmwnhyig802edb39d404b6985",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "303582",
+    "name": "M&P Express Logistics Pvt Ltd"
+  },
+  {
+    "companyId": "cmwnsiy3b6a1fde4bd6646003",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "47643",
+    "name": "Syed Waqar Raza"
+  },
+  {
+    "companyId": "cmwnhyig84ba03bf05b7a340f",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "296943",
+    "name": "Karachi Tile Mart"
+  },
+  {
+    "companyId": "cmwnsj0gz277736620c77bc92",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "137385",
+    "name": "M Aslam Ansari"
+  },
+  {
+    "companyId": "cmwnhyig8f3318e590f8f7998",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "304139",
+    "name": "YOUSUF DEWAN COMPANIES"
+  },
+  {
+    "companyId": "cmwnsiyefe8ccc80b2d89135e",
+    "oldUnits": 2,
+    "newCreditLimit": 1000,
+    "currentCreditLimit": 0,
+    "oldUserId": "57460",
+    "name": "Imran Khan"
+  },
+  {
+    "companyId": "cmwnsj0h1f150c7e778cb7d06",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "137925",
+    "name": "Abdul Aleem"
+  },
+  {
+    "companyId": "cmwnsizdmd52a8f0346adc737",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "86574",
+    "name": "Muhammad Hussain"
+  },
+  {
+    "companyId": "cmwnsiyv91928f57f9eac1eab",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "77219",
+    "name": "Muhammad Hammad Shafiq"
+  },
+  {
+    "companyId": "cmwnhyigia94eb5b04708127f",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "365545",
+    "name": "Human Capital HR Solutions"
+  },
+  {
+    "companyId": "cmwnsj08o2d11b4c79e4a41e7",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "120144",
+    "name": "Syed Ansar ul Haq"
+  },
+  {
+    "companyId": "cmwnsiy4f49642e1e2e41ceb4",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "54659",
+    "name": "Muhammad Asim Tanveer"
+  },
+  {
+    "companyId": "cmwnsizdc3225ef625cc960a5",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "82573",
+    "name": "Sikandar Arshad"
+  },
+  {
+    "companyId": "cmwnsj16z4ebe1bc0ce012fab",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "165095",
+    "name": "ahmad yaqoob"
+  },
+  {
+    "companyId": "cmwnhyig8d694ab8019e62792",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "295064",
+    "name": "MRSUF PVT LTED"
+  },
+  {
+    "companyId": "cmwnsiyf97ec0a986d4c63e98",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "62478",
+    "name": "Aamir Jamil"
+  },
+  {
+    "companyId": "cmwnhyig960f983569e2fe2d1",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "329437",
+    "name": "Parazelsus Pakistan Private Limited"
+  },
+  {
+    "companyId": "cmwnsiyum58bfb5d808426b61",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "71160",
+    "name": "Haris Jawaid "
+  },
+  {
+    "companyId": "cmwnhyigif75f1297b63e45d2",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "365231",
+    "name": "Saleem Shahzad"
+  },
+  {
+    "companyId": "cmwnsiy4h5b172bd2568135c9",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "55119",
+    "name": "Amir Ali Khan"
+  },
+  {
+    "companyId": "cmwnsiyf3076d4c5a0277fc8d",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "60568",
+    "name": "Asif Masood "
+  },
+  {
+    "companyId": "cmwnsiy4f20a118b10d712f28",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "54848",
+    "name": "Khurram "
+  },
+  {
+    "companyId": "cmwnhyig8799b6d96ac859c8e",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "307034",
+    "name": "DOHS REC OFFICE"
+  },
+  {
+    "companyId": "cmwnsiyfs33523e3a43910ae0",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "65714",
+    "name": "Naveed Habib Ullah"
+  },
+  {
+    "companyId": "cmwnsiy2pf286d33e3813de35",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "44859",
+    "name": "usama naeem"
+  },
+  {
+    "companyId": "cmwnsiy3q551624b689436a62",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "49771",
+    "name": "Junaid Khan "
+  },
+  {
+    "companyId": "cmwnsiyup6ad0e3dc971cbe68",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "72030",
+    "name": "asim rasheed"
+  },
+  {
+    "companyId": "cmwnsizqif591a494b5ddfd6e",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "89459",
+    "name": "farhan "
+  },
+  {
+    "companyId": "cmwnhyihg8a76e78dad165c6f",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "406749",
+    "name": "Fahad Ahmed Khan"
+  },
+  {
+    "companyId": "cmwnsizd3942b89979bf6353c",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "79865",
+    "name": "Abdullah"
+  },
+  {
+    "companyId": "cmwnsiyuh7642b364093bfc99",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "69441",
+    "name": "Mohammad Kashif Javed"
+  },
+  {
+    "companyId": "cmwnsiyugca1bc790ee062771",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "68597",
+    "name": "muhammad Abbas"
+  },
+  {
+    "companyId": "cmwnsiyup4bae4c5a9d6569a7",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "71980",
+    "name": "Abrar Ahmed Abbasi"
+  },
+  {
+    "companyId": "cmwnsiy2y0ec66ce2f847ca7b",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "46044",
+    "name": "Syed Junaid Haider Suhrawardy"
+  },
+  {
+    "companyId": "cmwnhyigcbfab5d30525cecde",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "346448",
+    "name": "Salman Ibul Fazal"
+  },
+  {
+    "companyId": "cmwnhyigf5a08cb03f07b9c76",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "355783",
+    "name": "HUMAN CAPITAL HR SOLUTIONS"
+  },
+  {
+    "companyId": "cmwnhyigg03c53d795cc044be",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "356970",
+    "name": "SAQIB SIDDIQUI"
+  },
+  {
+    "companyId": "cmwnsiy4j120ee37d910c8eaf",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "55616",
+    "name": "Arshad Amin"
+  },
+  {
+    "companyId": "cmwnsizdbbac1aa87648d22f8",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "82128",
+    "name": "Salman Nayyer"
+  },
+  {
+    "companyId": "cmwnsiye4496c6254138a58e6",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "56311",
+    "name": "Mariam Masood"
+  },
+  {
+    "companyId": "cmwnsizcz05ca0955af21fa35",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "78245",
+    "name": "Muhammad Kashif"
+  },
+  {
+    "companyId": "cmwnsiy2s0d579256acc35832",
+    "oldUnits": 1,
+    "newCreditLimit": 500,
+    "currentCreditLimit": 0,
+    "oldUserId": "45336",
+    "name": "Khurram Shaukat"
+  }
+]

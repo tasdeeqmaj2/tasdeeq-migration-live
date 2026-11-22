@@ -1,0 +1,182 @@
+=============================================================================
+   TASDEEQ OLD SYSTEM vs NEW SYSTEM - CREDIT RECONCILIATION REPORT
+=============================================================================
+Generated: 2026-11-22
+
+1. OVERVIEW
+-----------
+Total users matched between old and new system: 180
+
+Ledger Balance Status:
+  - Positive balance (actual credit remaining):  83 users
+  - Zero balance (fully consumed):               10 users
+  - NEGATIVE balance (consumed more than paid):   87 users
+
+Total old system units across all users: 10,210 units (5,105,000 PKR equivalent)
+Total "phantom" units (no financial backing):     9,504 units (4,752,000 PKR equivalent)
+
+
+2. WHAT WAS HAPPENING IN THE OLD SYSTEM
+-----------------------------------------
+The old Tasdeeq system had two separate tracking mechanisms:
+
+  a) user_available_verification table - Stored "available units" per user
+  b) verification_ledger table - Stored actual financial transactions (purchases & consumption)
+
+THE PROBLEM: These two were NOT synchronized.
+
+The old system allowed units to be MANUALLY ADDED directly to the
+user_available_verification table WITHOUT creating corresponding financial
+transactions in the verification_ledger. This means:
+
+  - Users could have 396 units showing as "available" while their actual
+    financial ledger showed they OWED money (negative balance)
+  - Units were added as a database shortcut, bypassing the payment flow
+  - No audit trail existed for these manual unit additions
+  - The ledger (financial truth) and the units display (what users saw)
+    diverged over time
+
+This is equivalent to adding money to someone's displayed wallet balance
+without them actually paying — the books don't balance.
+
+
+3. WORST CASES - USERS WITH INFLATED UNITS
+-------------------------------------------
+These users had the largest discrepancies (units existed but ledger was negative):
+
+  1. Mindbridge (ID: 328600, Phone: 03224956246)
+     Old Units: 3844 (1,922,000 PKR display value)
+     Ledger Purchased: 2,352,500 PKR
+     Ledger Consumed:  4,747,250 PKR
+     Ledger Balance:   -2,394,750 PKR (NEGATIVE - owes money)
+     Discrepancy:      4,316,750 PKR
+
+  2. Osama Moin Moin Chawla (ID: 56137, Phone: 03128443342)
+     Old Units: 396 (198,000 PKR display value)
+     Ledger Purchased: 43,800 PKR
+     Ledger Consumed:  308,000 PKR
+     Ledger Balance:   -264,200 PKR (NEGATIVE - owes money)
+     Discrepancy:      462,200 PKR
+
+  3. Premier Sales Private Limited (ID: 311388, Phone: 03348788021)
+     Old Units: 45 (22,500 PKR display value)
+     Ledger Purchased: 10,700 PKR
+     Ledger Consumed:  90,600 PKR
+     Ledger Balance:   -79,900 PKR (NEGATIVE - owes money)
+     Discrepancy:      102,400 PKR
+
+  4. Trans World Associates (ID: 341684, Phone: vKrEvBfKfFuSXPb7eO3JrA==)
+     Old Units: 24 (12,000 PKR display value)
+     Ledger Purchased: 185,750 PKR
+     Ledger Consumed:  247,000 PKR
+     Ledger Balance:   -61,250 PKR (NEGATIVE - owes money)
+     Discrepancy:      73,250 PKR
+
+  5. FIXDAR (ID: 103313, Phone: 03160268920)
+     Old Units: 7 (3,500 PKR display value)
+     Ledger Purchased: 35,000 PKR
+     Ledger Consumed:  82,500 PKR
+     Ledger Balance:   -47,500 PKR (NEGATIVE - owes money)
+     Discrepancy:      51,000 PKR
+
+  6. Zafar Ayub (ID: 51513, Phone: 03332204711)
+     Old Units: 9 (4,500 PKR display value)
+     Ledger Purchased: 198,100 PKR
+     Ledger Consumed:  227,750 PKR
+     Ledger Balance:   -29,650 PKR (NEGATIVE - owes money)
+     Discrepancy:      34,150 PKR
+
+  7. DINCLOUD PAKISTAN PRIVATE LIMITED (ID: 326332, Phone: Fmys8KIWOWZTcFppj/dgYg==)
+     Old Units: 16 (8,000 PKR display value)
+     Ledger Purchased: 8,500 PKR
+     Ledger Consumed:  37,250 PKR
+     Ledger Balance:   -28,750 PKR (NEGATIVE - owes money)
+     Discrepancy:      36,750 PKR
+
+  8. Idenfo Ltd (ID: 313417, Phone: C9osbMZjZ1tvd4NXMOoR7g==)
+     Old Units: 74 (37,000 PKR display value)
+     Ledger Purchased: 935,000 PKR
+     Ledger Consumed:  961,300 PKR
+     Ledger Balance:   -26,300 PKR (NEGATIVE - owes money)
+     Discrepancy:      63,300 PKR
+
+  9. Atif Akmal (ID: 80384, Phone: 03362111362)
+     Old Units: 11 (5,500 PKR display value)
+     Ledger Purchased: 151,900 PKR
+     Ledger Consumed:  172,050 PKR
+     Ledger Balance:   -20,150 PKR (NEGATIVE - owes money)
+     Discrepancy:      25,650 PKR
+
+  10. Raza Ahmed (ID: 357195, Phone: 03002156556)
+     Old Units: 39 (19,500 PKR display value)
+     Ledger Purchased: 752,600 PKR
+     Ledger Consumed:  768,400 PKR
+     Ledger Balance:   -15,800 PKR (NEGATIVE - owes money)
+     Discrepancy:      35,300 PKR
+
+
+4. CASE STUDY: xtrait97@gmail.com (Osama Moin Chawla)
+------------------------------------------------------
+Old System:
+  - Displayed units:    396 (worth 198,000 PKR at face value)
+  - Ledger purchased:   43,800 PKR (actual money received)
+  - Ledger consumed:    308,000 PKR (verifications done)
+  - Ledger balance:     -264,200 PKR (NEGATIVE - consumed 7x more than paid)
+
+New System:
+  - Total invoices:     159
+  - Total invoiced:     74,300 PKR
+  - Free (MIG) invoices: Migrated verification history (no charge)
+  - Paid invoices:      Actual paid transactions in new system
+  - Credit limit set:   198,000 PKR (honoring old displayed units)
+
+The 396 "units" in the old system were NOT backed by real payments. The user
+consumed 308,000 PKR worth of verifications but only paid 43,800 PKR. The old
+system continued showing 396 units because they were manually added to the DB.
+
+
+5. WHAT OUR NEW SYSTEM DOES CORRECTLY
+---------------------------------------
+  a) SINGLE SOURCE OF TRUTH: Credit limit (creditLimit) is one field on the
+     Company record. No separate "units" table that can go out of sync.
+
+  b) AUTOMATIC TRACKING: Outstanding balance is calculated in real-time from
+     actual invoice and verification task data — not stored separately.
+
+  c) FORMULA: Available Credit = Credit Limit - Outstanding
+     Available Units = floor(Available Credit / 500)
+
+  d) AUDIT TRAIL: Every credit change, payment, and verification is logged
+     in the audit system with timestamps and actor information.
+
+  e) INVOICE-BASED: All verifications generate invoices (prepaid or postpaid),
+     creating a complete financial trail.
+
+  f) NO MANUAL DB EDITS: Credit limits can only be changed through the admin
+     panel, which creates audit log entries.
+
+
+6. DECISION MADE
+-----------------
+Despite the ledger discrepancies, we honored the old system's displayed units
+for all 180 matched users:
+
+  Credit Limit = Old Units × 500 PKR
+
+This ensures no user sees a reduction in their credits during migration,
+even though many of these units were not backed by actual payments in the
+old system's financial ledger.
+
+Going forward, the new system prevents this discrepancy from recurring.
+
+
+7. CATEGORIES BREAKDOWN
+-------------------------
+  87 users: CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units)
+  75 users: Units higher than ledger balance (partially inflated)
+  10 users: Units exist but ledger balance is zero
+  8 users: Units match ledger balance (correct)
+
+=============================================================================
+                           END OF REPORT
+=============================================================================

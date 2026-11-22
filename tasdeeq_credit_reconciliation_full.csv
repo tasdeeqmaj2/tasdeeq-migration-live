@@ -1,0 +1,365 @@
+"============================================================================="
+"   TASDEEQ OLD SYSTEM vs NEW SYSTEM - CREDIT RECONCILIATION REPORT"
+"============================================================================="
+"Generated: 2026-11-22"
+""
+"1. OVERVIEW"
+"-----------"
+"Total users matched between old and new system: 180"
+""
+"Ledger Balance Status:"
+"  - Positive balance (actual credit remaining):  83 users"
+"  - Zero balance (fully consumed):               10 users"
+"  - NEGATIVE balance (consumed more than paid):   87 users"
+""
+"Total old system units across all users: 10,210 units (5,105,000 PKR equivalent)"
+"Total ""phantom"" units (no financial backing):     9,504 units (4,752,000 PKR equivalent)"
+""
+""
+"2. WHAT WAS HAPPENING IN THE OLD SYSTEM"
+"-----------------------------------------"
+"The old Tasdeeq system had two separate tracking mechanisms:"
+""
+"  a) user_available_verification table - Stored ""available units"" per user"
+"  b) verification_ledger table - Stored actual financial transactions (purchases & consumption)"
+""
+"THE PROBLEM: These two were NOT synchronized."
+""
+"The old system allowed units to be MANUALLY ADDED directly to the"
+"user_available_verification table WITHOUT creating corresponding financial"
+"transactions in the verification_ledger. This means:"
+""
+"  - Users could have 396 units showing as ""available"" while their actual"
+"    financial ledger showed they OWED money (negative balance)"
+"  - Units were added as a database shortcut, bypassing the payment flow"
+"  - No audit trail existed for these manual unit additions"
+"  - The ledger (financial truth) and the units display (what users saw)"
+"    diverged over time"
+""
+"This is equivalent to adding money to someone's displayed wallet balance"
+"without them actually paying — the books don't balance."
+""
+""
+"3. WORST CASES - USERS WITH INFLATED UNITS"
+"-------------------------------------------"
+"These users had the largest discrepancies (units existed but ledger was negative):"
+""
+"  1. Mindbridge (ID: 328600, Phone: 03224956246)"
+"     Old Units: 3844 (1,922,000 PKR display value)"
+"     Ledger Purchased: 2,352,500 PKR"
+"     Ledger Consumed:  4,747,250 PKR"
+"     Ledger Balance:   -2,394,750 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      4,316,750 PKR"
+""
+"  2. Osama Moin Moin Chawla (ID: 56137, Phone: 03128443342)"
+"     Old Units: 396 (198,000 PKR display value)"
+"     Ledger Purchased: 43,800 PKR"
+"     Ledger Consumed:  308,000 PKR"
+"     Ledger Balance:   -264,200 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      462,200 PKR"
+""
+"  3. Premier Sales Private Limited (ID: 311388, Phone: 03348788021)"
+"     Old Units: 45 (22,500 PKR display value)"
+"     Ledger Purchased: 10,700 PKR"
+"     Ledger Consumed:  90,600 PKR"
+"     Ledger Balance:   -79,900 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      102,400 PKR"
+""
+"  4. Trans World Associates (ID: 341684, Phone: vKrEvBfKfFuSXPb7eO3JrA==)"
+"     Old Units: 24 (12,000 PKR display value)"
+"     Ledger Purchased: 185,750 PKR"
+"     Ledger Consumed:  247,000 PKR"
+"     Ledger Balance:   -61,250 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      73,250 PKR"
+""
+"  5. FIXDAR (ID: 103313, Phone: 03160268920)"
+"     Old Units: 7 (3,500 PKR display value)"
+"     Ledger Purchased: 35,000 PKR"
+"     Ledger Consumed:  82,500 PKR"
+"     Ledger Balance:   -47,500 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      51,000 PKR"
+""
+"  6. Zafar Ayub (ID: 51513, Phone: 03332204711)"
+"     Old Units: 9 (4,500 PKR display value)"
+"     Ledger Purchased: 198,100 PKR"
+"     Ledger Consumed:  227,750 PKR"
+"     Ledger Balance:   -29,650 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      34,150 PKR"
+""
+"  7. DINCLOUD PAKISTAN PRIVATE LIMITED (ID: 326332, Phone: Fmys8KIWOWZTcFppj/dgYg==)"
+"     Old Units: 16 (8,000 PKR display value)"
+"     Ledger Purchased: 8,500 PKR"
+"     Ledger Consumed:  37,250 PKR"
+"     Ledger Balance:   -28,750 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      36,750 PKR"
+""
+"  8. Idenfo Ltd (ID: 313417, Phone: C9osbMZjZ1tvd4NXMOoR7g==)"
+"     Old Units: 74 (37,000 PKR display value)"
+"     Ledger Purchased: 935,000 PKR"
+"     Ledger Consumed:  961,300 PKR"
+"     Ledger Balance:   -26,300 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      63,300 PKR"
+""
+"  9. Atif Akmal (ID: 80384, Phone: 03362111362)"
+"     Old Units: 11 (5,500 PKR display value)"
+"     Ledger Purchased: 151,900 PKR"
+"     Ledger Consumed:  172,050 PKR"
+"     Ledger Balance:   -20,150 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      25,650 PKR"
+""
+"  10. Raza Ahmed (ID: 357195, Phone: 03002156556)"
+"     Old Units: 39 (19,500 PKR display value)"
+"     Ledger Purchased: 752,600 PKR"
+"     Ledger Consumed:  768,400 PKR"
+"     Ledger Balance:   -15,800 PKR (NEGATIVE - owes money)"
+"     Discrepancy:      35,300 PKR"
+""
+""
+"4. CASE STUDY: xtrait97@gmail.com (Osama Moin Chawla)"
+"------------------------------------------------------"
+"Old System:"
+"  - Displayed units:    396 (worth 198,000 PKR at face value)"
+"  - Ledger purchased:   43,800 PKR (actual money received)"
+"  - Ledger consumed:    308,000 PKR (verifications done)"
+"  - Ledger balance:     -264,200 PKR (NEGATIVE - consumed 7x more than paid)"
+""
+"New System:"
+"  - Total invoices:     159"
+"  - Total invoiced:     74,300 PKR"
+"  - Free (MIG) invoices: Migrated verification history (no charge)"
+"  - Paid invoices:      Actual paid transactions in new system"
+"  - Credit limit set:   198,000 PKR (honoring old displayed units)"
+""
+"The 396 ""units"" in the old system were NOT backed by real payments. The user"
+"consumed 308,000 PKR worth of verifications but only paid 43,800 PKR. The old"
+"system continued showing 396 units because they were manually added to the DB."
+""
+""
+"5. WHAT OUR NEW SYSTEM DOES CORRECTLY"
+"---------------------------------------"
+"  a) SINGLE SOURCE OF TRUTH: Credit limit (creditLimit) is one field on the"
+"     Company record. No separate ""units"" table that can go out of sync."
+""
+"  b) AUTOMATIC TRACKING: Outstanding balance is calculated in real-time from"
+"     actual invoice and verification task data — not stored separately."
+""
+"  c) FORMULA: Available Credit = Credit Limit - Outstanding"
+"     Available Units = floor(Available Credit / 500)"
+""
+"  d) AUDIT TRAIL: Every credit change, payment, and verification is logged"
+"     in the audit system with timestamps and actor information."
+""
+"  e) INVOICE-BASED: All verifications generate invoices (prepaid or postpaid),"
+"     creating a complete financial trail."
+""
+"  f) NO MANUAL DB EDITS: Credit limits can only be changed through the admin"
+"     panel, which creates audit log entries."
+""
+""
+"6. DECISION MADE"
+"-----------------"
+"Despite the ledger discrepancies, we honored the old system's displayed units"
+"for all 180 matched users:"
+""
+"  Credit Limit = Old Units × 500 PKR"
+""
+"This ensures no user sees a reduction in their credits during migration,"
+"even though many of these units were not backed by actual payments in the"
+"old system's financial ledger."
+""
+"Going forward, the new system prevents this discrepancy from recurring."
+""
+""
+"7. CATEGORIES BREAKDOWN"
+"-------------------------"
+"  87 users: CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units)"
+"  75 users: Units higher than ledger balance (partially inflated)"
+"  10 users: Units exist but ledger balance is zero"
+"  8 users: Units match ledger balance (correct)"
+""
+"============================================================================="
+"                           END OF REPORT"
+"============================================================================="
+
+
+Old User ID,Name,Phone,Match Method,Old System Units,Old Units Value (PKR),Old Ledger Purchased (PKR),Old Ledger Consumed (PKR),Old Ledger Balance (PKR),Ledger Status,Issue Found,New System Company ID,New System Company Name,Is Consumer,Previous Credit Limit (PKR),Corrected Credit Limit (PKR),Total Invoices,Total Invoiced (PKR),Free (MIG) Invoices,Free Invoices Amount (PKR),Paid Invoices,Paid Invoices Amount (PKR)
+106729,SAMI Pharmaceuticals,03030974798,phone,336,168000,1305000,1208100,96900,Positive,Units higher than ledger balance (partially inflated),cmwnsizza4aa8e893eeb6027b,SAMI Pharmaceuticals,false,96900,168000,25,1200800,25,1200800,0,0
+332302,Muhammad Basit Raza,03138349227,email,981,490500,110600,65250,45350,Positive,Units higher than ledger balance (partially inflated),cmwnhyigae003e8423ec9668a,Shahzeb Ejaz,false,0,490500,6,64450,6,64450,0,0
+45459,Kassim Pvt Ltd,03000544290,phone,296,148000,1570100,1534800,35300,Positive,Units higher than ledger balance (partially inflated),cmwnsiy2u2d8b1c2514cab954,Kassim Pvt Ltd,false,35300,148000,97,1800800,97,1800800,0,0
+373745,The Trust School,wAKl7YCd4HdHOQYQTXgs0w==,email,75,37500,251000,234000,17000,Positive,Units higher than ledger balance (partially inflated),cmwnhyigqc448a509a1330861,The Trust School,false,0,37500,65,225400,65,225400,0,0
+348677,Mudabbir Siddiqui,03034442587,email,254,127000,65000,48650,16350,Positive,Units higher than ledger balance (partially inflated),cmwnhyigd1dcbc0d198f332bc,Chase Up,false,0,127000,4,48450,4,48450,0,0
+357095,Universal Packaging Company (Pvt.) Limited,03008811411,email,300,150000,15200,700,14500,Positive,Units higher than ledger balance (partially inflated),cmwnhyigg027929dae9021238,Universal Packaging,false,0,150000,2,500,2,500,0,0
+276036,AGP Limited,03202619160,phone,318,159000,20000,6150,13850,Positive,Units higher than ledger balance (partially inflated),cmwnhyig7123ab07fd01f15ed,NAUMAN FAKHAR,false,0,159000,26,5850,26,5850,0,0
+57561,Huzaifa Moin ,03142192300,phone,348,174000,29900,18150,11750,Positive,Units higher than ledger balance (partially inflated),cmwnsiyei634e4b70b10d80c3,Huzaifa Moin,false,11750,174000,8,17200,8,17200,0,0
+335930,Matco Foods,03331207768,email,238,119000,30000,19150,10850,Positive,Units higher than ledger balance (partially inflated),cmwnhyiga2093de11c5501707,Khadija,false,0,119000,9,19150,9,19150,0,0
+338584,Shabbir Tiles & Ceramics Limited,03072228857,email,150,75000,9000,2300,6700,Positive,Units higher than ledger balance (partially inflated),cmwnhyigad4fe13a5669a0eef,Tafveez Amin,false,0,75000,11,2300,11,2300,0,0
+349093,Muhammad Saeed,03132399283,email,25,12500,50500,43900,6600,Positive,Units higher than ledger balance (partially inflated),cmwnhyigea33072eafd3513af,HUB,false,0,12500,116,43400,116,43400,0,0
+84326,Sajid Ali,03212041694,email,18,9000,38500,32300,6200,Positive,Units higher than ledger balance (partially inflated),cmwnsizdfa89cd76e6c7a5925,Sajid Ali,false,6200,9000,6,24500,6,24500,0,0
+325542,Taj Gasoline,03438250888,email,186,93000,10000,3850,6150,Positive,Units higher than ledger balance (partially inflated),cmwnhyig9f347938363ac74b7,Taj Corporation,false,0,93000,32,3250,32,3250,0,0
+330451,Muhammad Tahir Manzoor,03171777590,email,125,62500,10000,4100,5900,Positive,Units higher than ledger balance (partially inflated),cmwnhyiga86cdcf01e7432b3f,Shahid ur Rehman,false,0,62500,11,4000,11,4000,0,0
+359097,Maryam Sikandar,03456009382,email,55,27500,95000,89600,5400,Positive,Units higher than ledger balance (partially inflated),cmwnhyigg3654110c8ba28141,Paysys Labs Private Limited,false,0,27500,116,77250,116,77250,0,0
+346569,Saad Bin Ahmed,03008204431,email,100,50000,5000,0,5000,Positive,Units higher than ledger balance (partially inflated),cmwnhyigcf2bbab8cb0e36723,Alpha Hundred brand name Jagah online,false,0,50000,0,0,0,0,0,0
+351123,Ammar Afif,03011133562,email,100,50000,5000,0,5000,Positive,Units higher than ledger balance (partially inflated),cmwnhyige5950629cf2667d67,Cashew Financial Services Limited,false,0,50000,0,0,0,0,0,0
+316889,Winstore,03172000008,email,100,50000,5000,50,4950,Positive,Units higher than ledger balance (partially inflated),cmwnhyig9ce2192eb7716d87b,Umer Ali Malik,false,0,50000,1,0,1,0,0,0
+47395,Syed Farhan Hussain,03008210791,email,29,14500,37600,32650,4950,Positive,Units higher than ledger balance (partially inflated),cmwnsiy3a64da216bcccc349a,Syed Farhan Hussain,false,4950,14500,21,38500,21,38500,0,0
+367617,Zahira Rauf,K+30OlrY0XhVE3Gb/PgDTQ==,email,34,17000,29800,25400,4400,Positive,Units higher than ledger balance (partially inflated),cmwnhyigicbf0c096564ea85e,Pixako Technologies (Pvt.) Ltd,false,0,17000,24,23300,24,23300,0,0
+70605,Khalid Anwer ,03333801953,email,100,50000,5000,1100,3900,Positive,Units higher than ledger balance (partially inflated),cmwnsiyuk7c66a43b43160002,Khalid Anwer,false,3900,50000,1,750,1,750,0,0
+316684,Trax Online Private Limited,03419895836,email,73,36500,5000,1600,3400,Positive,Units higher than ledger balance (partially inflated),cmwnhyig9bdd4cf2b692ae878,Javed Akhter,false,0,36500,2,1600,2,1600,0,0
+353175,Amna Tahir,03075582554,email,72,36000,3600,250,3350,Positive,Units higher than ledger balance (partially inflated),cmwnhyigfc8d9707f2553c060,Markaz Technologies,false,0,36000,2,200,2,200,0,0
+75417,m haris jaffrani,03458887904,email,10,5000,8000,4850,3150,Positive,Units higher than ledger balance (partially inflated),cmwnsiyv1ea3fe790fe860cf5,m haris jaffrani,false,3150,5000,2,1200,2,1200,0,0
+45513,abdul karim,03212162535,email,9,4500,3000,300,2700,Positive,Units higher than ledger balance (partially inflated),cmwnsiy2w9f34b8b1c8748966,abdul karim,false,2700,4500,1,600,1,600,0,0
+44225,Ahmedyar Janjua,03366123000,phone,6,3000,14800,12250,2550,Positive,Units higher than ledger balance (partially inflated),cmwnsiy2f5edf0efac86471b3,Ahmedyar Janjua,false,2550,3000,28,8700,27,8200,1,500
+343218,Thal Engineering ,03452250660,email,69,34500,85500,83150,2350,Positive,Units higher than ledger balance (partially inflated),cmwnhyigb7d3df9624b0af087,Mazhar Zia,false,0,34500,9,83150,9,83150,0,0
+107499,rehan soni,03217655555,email,4,2000,2500,600,1900,Positive,Units higher than ledger balance (partially inflated),cmwnsizzcc803931cfc8f9d96,rehan soni,false,1900,2000,1,1500,1,1500,0,0
+77321,hammad raza ,03218812306,email,5,2500,2000,400,1600,Positive,Units higher than ledger balance (partially inflated),cmwnsiyv9c582ef1251671bc2,hammad raza,false,1600,2500,1,800,1,800,0,0
+48037,wajid shafi,03002865152,email,5,2500,9000,7800,1200,Positive,Units higher than ledger balance (partially inflated),cmwnsiy3hd48256cd48ba4342,wajid shafi,false,1200,2500,2,5100,2,5100,0,0
+63822,Sanaullah Abdullah,03332149366,email,5,2500,1500,300,1200,Positive,Units higher than ledger balance (partially inflated),cmwnsiyfkb059e53fce465a0c,Sanaullah Abdullah,false,1200,2500,1,600,1,600,0,0
+75203,Muhammad Hanif ,03332233000,email,5,2500,1250,250,1000,Positive,Units higher than ledger balance (partially inflated),cmwnsiyv01f9054fc36f7d388,Muhammad Hanif,false,1000,2500,1,250,1,250,0,0
+52740,Ahmed Faraz Hyder,03212570390,email,2,1000,1500,550,950,Positive,Units higher than ledger balance (partially inflated),cmwnsiy4550416401102490bb,Ahmed Faraz Hyder,false,950,1000,1,500,1,500,0,0
+91497,Alwisha Lateef,03365226942,email,95,47500,17500,16600,900,Positive,Units higher than ledger balance (partially inflated),cmwnsizqncea340eb7bece8bd,Alwisha Lateef,false,900,47500,160,25350,160,25350,0,0
+83439,Nauman Naseer,03017080000,email,4,2000,1500,600,900,Positive,Units higher than ledger balance (partially inflated),cmwnsizde214bff92317cbda6,Nauman Naseer,false,900,2000,1,600,1,600,0,0
+45288,Sheikh Mahmood Akhtar ,03008442120,email,4,2000,1500,600,900,Positive,Units higher than ledger balance (partially inflated),cmwnsiy2s32143f20005860b0,Sheikh Mahmood Akhtar,false,900,2000,1,600,1,600,0,0
+73880,Astral Constructors ,03458586908,email,20,10000,1000,200,800,Positive,Units higher than ledger balance (partially inflated),cmwnhyig30078e7675714fbec,Ayesha Ali,false,0,10000,3,150,3,150,0,0
+354451,Arif Azeemi,03477943611,email,20,10000,5800,5050,750,Positive,Units higher than ledger balance (partially inflated),cmwnhyigf0d57ac20fdf5d068,United King Foods Pvt Ltd,false,0,10000,1,5050,1,5050,0,0
+119818,Hamza ali khan,03219555890,email,2,1000,2000,1250,750,Positive,Units higher than ledger balance (partially inflated),cmwnsj08n5b76cda30a6fa1ab,Hamza ali khan,false,750,1000,1,800,1,800,0,0
+295230,Roots International Schools & Colleges,03465440278,email,18,9000,2600,1950,650,Positive,Units higher than ledger balance (partially inflated),cmwnhyig81f4a1cacdb89e6d2,CHAUDARY WALID MUSHTAQ,false,0,9000,1,1950,1,1950,0,0
+185339,Chase Department Store,03424020202,email,31,15500,28750,28150,600,Positive,Units higher than ledger balance (partially inflated),cmwnhyig6270ee1d6231614dd,Habib Zaib,false,0,15500,10,75300,10,75300,0,0
+53972,Rashid Ali Mughal,03002257774,email,2,1000,900,300,600,Positive,Units higher than ledger balance (partially inflated),cmwnsiy4b649a69ccf439664a,Rashid Ali Mughal,false,600,1000,2,1200,2,1200,0,0
+311086,DCC Consultants SMC Private Limited,03314159620,email,16,8000,1250,700,550,Positive,Units higher than ledger balance (partially inflated),cmwnhyig9531ac93bdb4cac14,Sami Shafi,false,0,8000,1,700,1,700,0,0
+75341,Faryal Khattak ,03065349269,email,1,500,800,300,500,Positive,Units match ledger balance (correct),cmwnsiyv185607792b7ba932f,Faryal Khattak,false,500,500,2,300,2,300,0,0
+73591,sumair shaukat ali,03212529909,email,1,500,500,0,500,Positive,Units match ledger balance (correct),cmwnsiyuuf7666af529758b0e,sumair shaukat ali,false,500,500,2,1000,2,1000,0,0
+60849,amber,03002120857,email,1,500,500,0,500,Positive,Units match ledger balance (correct),cmwpco3cif3303f6a72752268,amber,true,0,500,0,0,0,0,0,0
+87320,Wajahat Khan,03009284857,email,1,500,1000,500,500,Positive,Units match ledger balance (correct),cmwnsizdof56782a07b12fb62,Wajahat Khan,false,500,500,1,500,1,500,0,0
+68774,Aman Ullah,03004282427,email,1,500,500,0,500,Positive,Units match ledger balance (correct),cmwpcyq6mf3ca143cf140479b,Aman Ullah,true,500,500,0,0,0,0,0,0
+85142,Mateen Raja,03495315571,email,1,500,1000,500,500,Positive,Units match ledger balance (correct),cmwnsizdh9645aebb89d49a9f,Mateen Raja,false,500,500,4,500,4,500,0,0
+74724,syed nabeel shah,03332107683,email,1,500,500,0,500,Positive,Units match ledger balance (correct),cmwpd1espaa2fe60e2b8607da,syed nabeel shah,true,500,500,0,0,0,0,0,0
+69763,Muhammad Siraj Khatri,03008231665,email,1,500,1000,500,500,Positive,Units match ledger balance (correct),cmwnsiyuiff14b0d16738448c,Muhammad Siraj Khatri,false,500,500,1,500,1,500,0,0
+71401,Mansoor Hayat,03232738786,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwnsiyun53ed91bf4ba03b13,Mansoor Hayat,false,400,500,2,800,2,800,0,0
+55014,Majid Khan,03005592227,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwpclee2d2d66cb8afbebbb9,Majid Khan,true,0,500,0,0,0,0,0,0
+50744,ASIF UDDIN ,03008242874,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwnsiy3u1998c6ebb4d09ab0,ASIF UDDIN,false,400,500,3,1200,3,1200,0,0
+89628,Shahin Khattak ,03345177737,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwnsizqieab65f18ebf41102,Shahin Khattak,false,400,500,2,1200,2,1200,0,0
+90491,Yahya,03238448828,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwpd4rd5294c3e42884d992e,Yahya,true,400,500,0,0,0,0,0,0
+101459,Basit Ali,03139030520,email,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwpd6xpe4664fbffbec7eabe,Basit Ali,true,400,500,0,0,0,0,0,0
+65020,imran khan,03003098726,phone,1,500,400,0,400,Positive,Units higher than ledger balance (partially inflated),cmwpcoqt2cfa46c77282df80f,imran khan,true,0,500,0,0,0,0,0,0
+304094,International Steels Limited,03472764024,email,10,5000,500,150,350,Positive,Units higher than ledger balance (partially inflated),cmwnhyig84adb30a870f3175a,Sana Razzak Bari,false,0,5000,1,150,1,150,0,0
+359108,Waleed Tallat,03224592991,email,22,11000,2500,2200,300,Positive,Units higher than ledger balance (partially inflated),cmwnhyigg4b66227e047fd6b3,Unlayer Private Limited,false,0,11000,7,2200,7,2200,0,0
+324936,Kiran Foundation,03352414897,email,17,8500,1000,700,300,Positive,Units higher than ledger balance (partially inflated),cmwnhyig922199288b440c906,Muhammad Usama,false,0,8500,4,600,4,600,0,0
+74646,HRSG Outsourcing Pvt Limited,03072224981,email,16,8000,2500,2200,300,Positive,Units higher than ledger balance (partially inflated),cmwnhyig33ae4feec91daf2ae,Arsalan Bhatti,false,0,8000,3,2200,3,2200,0,0
+340088,Prime Engineering Application Services,03332205271,email,11,5500,1500,1200,300,Positive,Units higher than ledger balance (partially inflated),cmwnhyiga33b5b6e966df8cd0,Mohammad Anwer,false,0,5500,3,1200,3,1200,0,0
+343952,Shophive,03218499077,email,10,5000,500,200,300,Positive,Units higher than ledger balance (partially inflated),cmwnhyigb838ea5eeaac2ce51,Arslan Nazir,false,0,5000,2,200,2,200,0,0
+65106,M Ali Ansari ,03212455566,email,2,1000,800,500,300,Positive,Units higher than ledger balance (partially inflated),cmwnsiyfp1aefd2c764912f74,M Ali Ansari,false,300,1000,2,400,2,400,0,0
+49495,Omar ,03212491548,email,1,500,300,0,300,Positive,Units higher than ledger balance (partially inflated),cmwpckkp9626871005cbbe7e6,Omar ,true,0,500,0,0,0,0,0,0
+88410,Waqas ul Hasan,03333392727,email,1,500,300,0,300,Positive,Units higher than ledger balance (partially inflated),cmwpd4e2k1ec6f335fe73cbd0,Waqas ul Hasan,true,300,500,0,0,0,0,0,0
+64117,Arif,03022070622,email,1,500,600,300,300,Positive,Units higher than ledger balance (partially inflated),cmwnsiyfl950d23b3bb8a3186,Arif,false,300,500,2,300,2,300,0,0
+78274,Muhammad Yousaf,03090044443,email,1,500,300,0,300,Positive,Units higher than ledger balance (partially inflated),cmwnsizcz1207d5c2840a30d4,Muhammad Yousaf,false,300,500,4,1500,4,1500,0,0
+110951,AD,03218412894,email,1,500,600,300,300,Positive,Units higher than ledger balance (partially inflated),cmwnsizzj6e52d4ec60aff7c3,AD,false,300,500,1,300,1,300,0,0
+59816,Khizer saleem,03324046546,email,1,500,300,0,300,Positive,Units higher than ledger balance (partially inflated),cmwpcny1v0607125cc1b6fdb2,Khizer saleem,true,0,500,0,0,0,0,0,0
+67572,Ayesha Farooqui ,03018220201,email,1,500,600,300,300,Positive,Units higher than ledger balance (partially inflated),cmwnsiyfy2d0f8b55676fdf42,Ayesha Farooqui,false,300,500,3,900,3,900,0,0
+67746,Tahir Hussain,03009209147,email,1,500,300,0,300,Positive,Units higher than ledger balance (partially inflated),cmwpcykelac6548a030c7fb9f,Tahir Hussain,true,300,500,0,0,0,0,0,0
+86644,Faisal Industries ,03171716651,email,63,31500,5000,4750,250,Positive,Units higher than ledger balance (partially inflated),cmwnsizdma93b8fae188f26e6,Faisal Industries,false,250,31500,1,2400,1,2400,0,0
+358666,Mahmood Ahmed,03008541253,email,10,5000,14650,14400,250,Positive,Units higher than ledger balance (partially inflated),cmwnhyiggf08fda61891a4ced,Character Education Foundation,false,0,5000,1,14350,1,14350,0,0
+144028,Muhammad Nadeem,03009686758,email,1,500,500,250,250,Positive,Units higher than ledger balance (partially inflated),cmwnsj0h9e512c9c54310b138,Muhammad Nadeem,false,250,500,1,500,1,500,0,0
+97082,uzair,03048935183,email,1,500,900,700,200,Positive,Units higher than ledger balance (partially inflated),cmwnsizr3e9616525745557a6,uzair,false,200,500,2,300,2,300,0,0
+77626,m ashfaq,03006336992,email,1,500,500,300,200,Positive,Units higher than ledger balance (partially inflated),cmwnsiyva4669ed9332206d56,m ashfaq,false,200,500,1,500,1,500,0,0
+303272,Al Baraka Apparel  Diners,03422601766,email,17,8500,5000,4850,150,Positive,Units higher than ledger balance (partially inflated),cmwnhyig8dc8499fef9365ce5,Syed Talha Tanvir,false,0,8500,5,4850,5,4850,0,0
+61076,Farhaj Aulakh,03212218533,email,2,1000,200,100,100,Positive,Units higher than ledger balance (partially inflated),cmwnsiyf505c393abb324a266,Farhaj Aulakh,false,100,1000,1,100,1,100,0,0
+91429,Abdullah Tariq,03212956779,email,1,500,800,700,100,Positive,Units higher than ledger balance (partially inflated),cmwnsizqm0a7e5d6c1c99636d,Abdullah Tariq,false,100,500,1,400,1,400,0,0
+346288,Hamza Javaid,03348464229,email,1,500,50,0,50,Positive,Units higher than ledger balance (partially inflated),cmwnhyigcc959cef5df3662ed,Support Solutions Hub Pvt Ltd,false,0,500,0,0,0,0,0,0
+355784,Mariam Khan,03009456780,email,1,500,50,0,50,Positive,Units higher than ledger balance (partially inflated),cmwnhyigf32ee0b70ce0de69d,HashMaker Solutions,false,0,500,0,0,0,0,0,0
+328600,Mindbridge,03224956246,email,3844,1922000,2352500,4747250,-2394750,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig9e7c9ef5b8287cf61,Zia Ul Munim,false,0,1922000,337,4328100,337,4328100,0,0
+56137,Osama Moin Moin Chawla,03128443342,phone,396,198000,43800,308000,-264200,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyifyc18620bc14f11488,Osama Moin Chawla,false,500,198000,159,74300,157,73300,2,1000
+348217,Rabia Siraj,03164754664,email,134,67000,10000,18100,-8100,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigd2e4670ffe1cf5e2a,Lahore University of Management Sciences,false,0,67000,17,16700,17,16700,0,0
+313417,Idenfo Ltd,C9osbMZjZ1tvd4NXMOoR7g==,email,74,37000,935000,961300,-26300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig983e32028d8cc2a32,Syed Shayaan Hasan,false,0,37000,455,953800,455,953800,0,0
+345223,eshifa,0+reod80IYSENeN8b5VMWw==,email,64,32000,30000,35100,-5100,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwpdvbwk4dcee0d16c142dc7,eshifa,true,0,32000,10,50,10,50,0,0
+286162,HG Markets Pvt Limited,03124919002,email,64,32000,36350,51600,-15250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8c203daf8c759e86a,Rimsha Tahir,false,0,32000,9,51600,9,51600,0,0
+298301,Ultra Security Company (Pvt.) Ltd.,03228234058,email,55,27500,35000,50600,-15600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8264c94e626b78122,Ultra Security Company (Pvt.) Ltd.,false,0,27500,44,9450,44,9450,0,0
+326557,Rajby Industries,03332125066,email,51,25500,100000,101600,-1600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig97b3441eb21f06026,Rizwan Sami,false,0,25500,138,101500,138,101500,0,0
+311388,Premier Sales Private Limited,03348788021,phone,45,22500,10700,90600,-79900,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig9439af96b91307b7d,Imad Ghori,false,0,22500,9,90300,9,90300,0,0
+51095,Abdullah Khan,03018213326,email,39,19500,10000,10050,-50,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy3zdee0360e35650725,Abdullah Khan,false,0,19500,1,8300,1,8300,0,0
+357195,Raza Ahmed,03002156556,email,39,19500,752600,768400,-15800,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigg0c21bb2d2c36c15e,Toppers HR services,false,0,19500,429,753700,429,753700,0,0
+273560,Zakir Tikka Phase 6,03200118864,phone,35,17500,3900,4950,-1050,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig7cd9aecc843a161df,REHMAN SECURITY SYSTEMS PVT LTD,false,0,17500,1,50,1,50,0,0
+306861,Oar Services Pvt Limited,03483117794,email,28,14000,17500,17750,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8edd7ef712a925f3a,Nauman Malik,false,0,14000,41,17750,41,17750,0,0
+55033,Zain Shahid,03334530196,email,27,13500,2500,2750,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy4hdcbb6b8168d2f0bb,Zain Shahid,false,0,13500,58,5300,58,5300,0,0
+329679,Bannu Woollen Mills Limited,03176144388,email,26,13000,50000,57300,-7300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigaad56354783df5559,Bannu Woollen Mills Limited,false,0,13000,23,51700,23,51700,0,0
+341684,Trans World Associates,vKrEvBfKfFuSXPb7eO3JrA==,email,24,12000,185750,247000,-61250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigbff8e0c6b00bf6f12,Zeeshan Murtaza,false,0,12000,62,503100,62,503100,0,0
+279328,Nutshell Solutions Private Limited,03474079940,email,24,12000,2200,3650,-1450,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8dab4834aa8f43222,Shahab Adil,false,0,12000,17,2150,17,2150,0,0
+349559,Aneela Mahmood,03352683802,email,21,10500,177700,182050,-4350,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyige4a066d245cc5e7b4,Star HRSG (Pvt) Ltd,false,0,10500,145,129950,145,129950,0,0
+349206,Usman Farooqi,03334560450,email,21,10500,21550,23150,-1600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyige5287d449ce601d8d,E PROCESSING SYSTEMS,false,0,10500,33,3150,33,3150,0,0
+343321,Zindagi Trust,SEA4lguDb5WtuFFNE6VbrQ==,email,19,9500,50000,60150,-10150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigb49fbc9665e8039e0,Zindagi Trust,false,0,9500,39,57750,37,56750,2,1000
+54602,Uzair Wahid,03018551882,phone,18,9000,1800,2550,-750,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy4eeccb478261645b10,Uzair Wahid,false,0,9000,5,2300,5,2300,0,0
+44484,Murtaza Hashmi,03000501965,phone,17,8500,196000,201500,-5500,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy2j732fa7bad44df1c0,Murtaza Hashmi,false,0,8500,463,217700,463,217700,0,0
+86508,Kohat Cement Company Limited,03008454127,email,17,8500,106700,119650,-12950,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig445ce706672d0ba9b,Muneeb Anjum,false,0,8500,366,444150,366,444150,0,0
+326332,DINCLOUD PAKISTAN PRIVATE LIMITED,Fmys8KIWOWZTcFppj/dgYg==,email,16,8000,8500,37250,-28750,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig9daf63e115a1a6ece,KHURRAM SHAFIQUE,false,0,8000,63,27850,63,27850,0,0
+168031,Corporate Bridge of Risk Management Pvt Ltd,03335050545,email,15,7500,290000,303700,-13700,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig66a5e8fba5007d2a2,Usman Mushtaq,false,0,7500,236,284200,234,283200,2,1000
+347396,Haris Jawaid,03093336925,email,15,7500,44000,46100,-2100,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigc9acefa9bf09593c1,Eximus Education,false,0,7500,68,43900,68,43900,0,0
+307094,NIzam Sons,03007108057,email,14,7000,50000,50300,-300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8edf1113759cf6ab1,Rashid Umair,false,0,7000,19,50300,19,50300,0,0
+69388,ABDUL SATTAR,03028249482,email,13,6500,1000,2600,-1600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyuh239345aaaa44789e,ABDUL SATTAR,false,0,6500,1,550,1,550,0,0
+80384,Atif Akmal,03362111362,phone,11,5500,151900,172050,-20150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizd54ff1adf2fc951161,Atif Akmal,false,0,5500,223,196650,223,196650,0,0
+305517,Macpac Films Ltd,03242818433,email,11,5500,39600,44450,-4850,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8e566d4064c1c4977,Mehreen Shah Khalid,false,0,5500,118,42450,118,42450,0,0
+290704,Al Razzaq Fibres PVT Limited,03037369770,email,9,4500,29550,30150,-600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8188b8ceeb4bdd2a6,Mustafa Saya,false,0,4500,5,30150,5,30150,0,0
+51513,Zafar Ayub,03332204711,phone,9,4500,198100,227750,-29650,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy42c72193a24c5fa1c4,Zafar Ayub,false,0,4500,79,199050,79,199050,0,0
+358890,Muzammil,03452064528,email,8,4000,9000,9800,-800,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigg93320d7eca3b3d9f,Sarfraz Group,false,0,4000,29,9300,29,9300,0,0
+131946,Imtiaz Stores,03015079740,email,8,4000,200000,202850,-2850,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig5c2bd6b024189ba0c,Azim Khan,false,0,4000,272,672950,272,672950,0,0
+351755,Syed Saad Ali,Sz0NDxTOvSmOX8MJ6EWT5Q==,email,8,4000,110000,114700,-4700,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyige5aa3536140188b6b,Arthur Lawrence Business and IT Services Private Limited,false,0,4000,103,111300,103,111300,0,0
+73119,Masood Alam,03335275278,phone,7,3500,2050,3700,-1650,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyuta2170b515c67ee25,Masood Alam,false,0,3500,7,2500,7,2500,0,0
+315015,The Handyman,03000203171,email,7,3500,2000,6550,-4550,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig9ee4cab9c08e7691d,Zohaib Munawar,false,0,3500,4,800,4,800,0,0
+103313,FIXDAR,03160268920,email,7,3500,35000,82500,-47500,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig5bec90383352e27e4,HUMZA SALEEM,false,0,3500,90,189000,90,189000,0,0
+293096,Pasha Marbles,03060159619,email,7,3500,3150,3350,-200,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig81b550c2077c3ce5b,Furqan Ahmed,false,0,3500,5,3350,5,3350,0,0
+294506,Lettus Kitchens,03345298611,email,5,2500,2300,2550,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig83adb50514a2e040f,Syed Tayyab Raza,false,0,2500,2,2550,2,2550,0,0
+346272,Support Solutions Hub Pvt Ltd,03214949422,email,5,2500,4950,5650,-700,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigcd3debe4904d4810e,Support Solutions Hub Pvt Ltd,false,0,2500,9,4500,9,4500,0,0
+340637,Structure Solutions,03208141212,email,5,2500,250,250,0,Zero,Units exist but ledger balance is zero,cmwnhyigbd6ecfa85e8ed7da2,Ahmed Raza,false,0,2500,1,250,1,250,0,0
+314971,Human Resource Solutions International,03363685452,email,5,2500,62500,72900,-10400,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig99b90883c829e480e,Muhammad Mustafa,false,0,2500,77,72500,77,72500,0,0
+366792,Sajjad Mehmood,03218549408,email,5,2500,2400,3050,-650,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigic71339662b670e1b,de RISC GROUP,false,0,2500,3,300,3,300,0,0
+64252,Muhammad Arsalan,03453828224,phone,5,2500,2250,5550,-3300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyfm0c74a52e520fae25,Muhammad Arsalan,false,0,2500,76,7900,76,7900,0,0
+60136,Naval Anchorage Islamabad,03046806525,email,4,2000,3500,4750,-1250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyifz7da948695d46afa1,AHMED REHAN ASLAM,false,0,2000,36,9250,36,9250,0,0
+345321,Osama Moin chawla,03255552555,email,4,2000,250,550,-300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigba799cc05a9583403,SPWT,false,0,2000,2,300,2,300,0,0
+362025,Taskeen Zahra,03008909902,email,4,2000,1000,1200,-200,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigh61513ce393452b2f,BLV Enterprise,false,0,2000,7,1100,7,1100,0,0
+330526,Integry Solutions Pvt SMC LTD,03008444709,email,4,2000,1950,2100,-150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigabe763b3ba1f6a7e6,Muhammad Nasrullah,false,0,2000,5,2100,5,2100,0,0
+73467,Muhammad Fawad Sharif Umar Sharif Bhatti,03370375375,email,3,1500,140550,151900,-11350,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig28cfd2fa147d23d4c,People Source Plus Pvt. Ltd.,false,0,1500,129,374400,129,374400,0,0
+293103,Al Farooq Builders,03332347452,email,3,1500,1500,3050,-1550,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8139d8ea24284aea8,Muhammad Farooq,false,0,1500,11,3050,11,3050,0,0
+359220,faheem@alistgroup.ca,03000917812,email,3,1500,5500,9550,-4050,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigh34f77ec90e03b225,AList Group,false,0,1500,13,1400,13,1400,0,0
+363852,Bilal Khan,03228082645,email,2,1000,2550,8400,-5850,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigh1c9cbd99368c819a,Kamboj Telehealth,false,0,1000,9,2600,9,2600,0,0
+53162,Nouman,03034255104,email,2,1000,600,2800,-2200,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwpdw5q9c271f523285ab27b,Muhammad Afzaal,true,0,1000,2,100,2,100,0,0
+300953,Adamjee Enterprises,03132273577,email,2,1000,100,100,0,Zero,Units exist but ledger balance is zero,cmwnhyig88a5e90f49962cbc6,Hassaan Ahmed,false,0,1000,1,100,1,100,0,0
+303582,M&P Express Logistics Pvt Ltd,03160020061,email,2,1000,344950,349500,-4550,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig802edb39d404b6985,Syed Dilawar Abbas,false,0,1000,19,364600,19,364600,0,0
+47643,Syed Waqar Raza,03214895036,phone,2,1000,10800,13600,-2800,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy3b6a1fde4bd6646003,Syed Waqar Raza,false,0,1000,2,10200,2,10200,0,0
+296943,Karachi Tile Mart,03018244313,email,2,1000,18300,19450,-1150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig84ba03bf05b7a340f,Muhammad Abbas,false,0,1000,26,12450,26,12450,0,0
+137385,M Aslam Ansari,03052181697,email,2,1000,50,300,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsj0gz277736620c77bc92,M Aslam Ansari,false,0,1000,5,250,5,250,0,0
+304139,YOUSUF DEWAN COMPANIES,03018224984,email,2,1000,31500,32800,-1300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8f3318e590f8f7998,YOUSUF DEWAN COMPANIES,false,0,1000,56,27000,56,27000,0,0
+57460,Imran Khan,03455992451,email,2,1000,1000,3450,-2450,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyefe8ccc80b2d89135e,Imran Khan,false,0,1000,133,9650,133,9650,0,0
+137925,Abdul Aleem,03337246117,email,1,500,50,1400,-1350,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsj0h1f150c7e778cb7d06,Abdul Aleem,false,0,500,3,150,3,150,0,0
+86574,Muhammad Hussain,03332199354,email,1,500,3000,4700,-1700,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizdmd52a8f0346adc737,Muhammad Hussain,false,0,500,9,3900,9,3900,0,0
+77219,Muhammad Hammad Shafiq,03226104954,email,1,500,900,2000,-1100,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyv91928f57f9eac1eab,Muhammad Hammad Shafiq,false,0,500,3,300,3,300,0,0
+365545,Human Capital HR Solutions,03418106633,email,1,500,111400,118050,-6650,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigia94eb5b04708127f,Human Capital HR Solution,false,0,500,90,83050,90,83050,0,0
+120144,Syed Ansar ul Haq,03008240933,email,1,500,800,1950,-1150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsj08o2d11b4c79e4a41e7,Syed Ansar ul Haq,false,0,500,1,800,1,800,0,0
+54659,Muhammad Asim Tanveer,03219426107,phone,1,500,250,250,0,Zero,Units exist but ledger balance is zero,cmwnsiy4f49642e1e2e41ceb4,Muhammad Asim Tanveer,false,0,500,1,250,1,250,0,0
+82573,Sikandar Arshad,03055867831,phone,1,500,100,350,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizdc3225ef625cc960a5,Sikandar Arshad,false,0,500,1,100,1,100,0,0
+165095,ahmad yaqoob,03000974798,email,1,500,150,1000,-850,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsj16z4ebe1bc0ce012fab,ahmad yaqoob,false,0,500,3,150,3,150,0,0
+295064,MRSUF PVT LTED,03459466611,email,1,500,50,50,0,Zero,Units exist but ledger balance is zero,cmwnhyig8d694ab8019e62792,USMAN SALEEm,false,0,500,1,50,1,50,0,0
+62478,Aamir Jamil,03009204528,email,1,500,50,900,-850,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyf97ec0a986d4c63e98,Aamir Jamil,false,0,500,1,50,1,50,0,0
+329437,Parazelsus Pakistan Private Limited,03212427561,email,1,500,5000,5300,-300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig960f983569e2fe2d1,Syed Sadiq Hussain,false,0,500,2,5150,2,5150,0,0
+71160,Haris Jawaid ,03002613417,email,1,500,0,0,0,Zero,Units exist but ledger balance is zero,cmwnsiyum58bfb5d808426b61,Haris Jawaid,false,0,500,2,0,2,0,0,0
+365231,Saleem Shahzad,03455559272,email,1,500,100,700,-600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigif75f1297b63e45d2,deRISCGroup,false,0,500,3,700,3,700,0,0
+55119,Amir Ali Khan,03004408888,email,1,500,300,1600,-1300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy4h5b172bd2568135c9,Amir Ali Khan,false,0,500,2,350,2,350,0,0
+60568,Asif Masood ,03219443333,email,1,500,1200,2850,-1650,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyf3076d4c5a0277fc8d,Asif Masood,false,0,500,2,300,2,300,0,0
+54848,Khurram ,03218298979,email,1,500,500,1650,-1150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy4f20a118b10d712f28,Khurram,false,0,500,9,900,9,900,0,0
+307034,DOHS REC OFFICE,03213875040,email,1,500,3200,6900,-3700,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyig8799b6d96ac859c8e,Kashif Azad,false,0,500,7,650,7,650,0,0
+65714,Naveed Habib Ullah,03324628333,email,1,500,250,250,0,Zero,Units exist but ledger balance is zero,cmwnsiyfs33523e3a43910ae0,Naveed Habib Ullah,false,0,500,4,1000,4,1000,0,0
+44859,usama naeem,03222457030,email,1,500,300,300,0,Zero,Units exist but ledger balance is zero,cmwnsiy2pf286d33e3813de35,usama naeem,false,0,500,2,600,2,600,0,0
+49771,Junaid Khan ,03000402212,email,1,500,300,300,0,Zero,Units exist but ledger balance is zero,cmwnsiy3q551624b689436a62,Junaid Khan,false,0,500,1,300,1,300,0,0
+72030,asim rasheed,03332488137,email,1,500,2400,2400,0,Zero,Units exist but ledger balance is zero,cmwnsiyup6ad0e3dc971cbe68,asim rasheed,false,0,500,2,1500,2,1500,0,0
+89459,farhan ,03218233006,email,1,500,400,1000,-600,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizqif591a494b5ddfd6e,farhan,false,0,500,4,1400,4,1400,0,0
+406749,Fahad Ahmed Khan,03004017522,phone,1,500,0,300,-300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyihg8a76e78dad165c6f,Edenrobe,false,0,500,1,0,1,0,0,0
+79865,Abdullah,03218900631,email,1,500,50,1000,-950,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizd3942b89979bf6353c,Abdullah,false,0,500,7,350,7,350,0,0
+69441,Mohammad Kashif Javed,03212554945,email,1,500,50,1500,-1450,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyuh7642b364093bfc99,Mohammad Kashif Javed,false,0,500,2,100,2,100,0,0
+68597,muhammad Abbas,03428147723,email,1,500,50,250,-200,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyugca1bc790ee062771,muhammad Abbas,false,0,500,4,200,4,200,0,0
+71980,Abrar Ahmed Abbasi,03009786432,email,1,500,400,1200,-800,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiyup4bae4c5a9d6569a7,Abrar Ahmed Abbasi,false,0,500,7,700,7,700,0,0
+46044,Syed Junaid Haider Suhrawardy,03232497772,email,1,500,50,200,-150,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy2y0ec66ce2f847ca7b,Syed Junaid Haider Suhrawardy,false,0,500,1,50,1,50,0,0
+346448,Salman Ibul Fazal,03000641433,email,1,500,50,50,0,Zero,Units exist but ledger balance is zero,cmwnhyigcbfab5d30525cecde,Xumic,false,0,500,1,50,1,50,0,0
+355783,HUMAN CAPITAL HR SOLUTIONS,03462016703,email,1,500,550,1550,-1000,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigf5a08cb03f07b9c76,HUMAN CAPITAL HR SOLUTIONS,false,0,500,6,1450,6,1450,0,0
+356970,SAQIB SIDDIQUI,03312235493,email,1,500,50,300,-250,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnhyigg03c53d795cc044be,UDPL,false,0,500,1,300,1,300,0,0
+55616,Arshad Amin,03082996164,email,1,500,9450,16250,-6800,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy4j120ee37d910c8eaf,Arshad Amin,false,0,500,41,11950,41,11950,0,0
+82128,Salman Nayyer,03007603600,email,1,500,500,800,-300,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizdbbac1aa87648d22f8,Salman Nayyer,false,0,500,5,700,5,700,0,0
+56311,Mariam Masood,03217512783,email,1,500,2550,4100,-1550,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiye4496c6254138a58e6,Mariam Masood,false,0,500,5,1050,5,1050,0,0
+78245,Muhammad Kashif,03218202930,email,1,500,200,1300,-1100,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsizcz05ca0955af21fa35,Muhammad Kashif,false,0,500,6,450,6,450,0,0
+45336,Khurram Shaukat,03212382382,email,1,500,4500,6500,-2000,Negative,CRITICAL: Units inflated - ledger shows negative balance (user owes money but had units),cmwnsiy2s0d579256acc35832,Khurram Shaukat,false,0,500,2,800,2,800,0,0
