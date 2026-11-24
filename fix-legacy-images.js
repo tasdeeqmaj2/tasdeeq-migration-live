@@ -188,19 +188,23 @@ async function main() {
   let failed = 0;
   let skipped = 0;
   let updated = 0;
-  const failedUrls = new Map(); // url → error
+  const failedUrls = new Map();
 
-  const CONCURRENCY = Number(process.env.ASSET_MIGRATE_CONCURRENCY) || 3;
-  const SAVE_INTERVAL = 500;
+  const CONCURRENCY = Number(process.env.ASSET_MIGRATE_CONCURRENCY) || 10;
+  const SAVE_INTERVAL = 200;
 
-  for (let i = 0; i < forms.length; i++) {
-    const f = forms[i];
+  async function processForm(f) {
     const updates = {};
     let hasUpdate = false;
+    let formSucceeded = 0;
+    let formFailed = 0;
+    let formSkipped = 0;
 
-    for (const [col, dbCol] of [['cnicFrontKey', '"cnicFrontKey"'], ['cnicBackKey', '"cnicBackKey"'], ['facePhotoKey', '"facePhotoKey"']]) {
+    // Process all 3 images of this form in parallel
+    const cols = [['cnicFrontKey', '"cnicFrontKey"'], ['cnicBackKey', '"cnicBackKey"'], ['facePhotoKey', '"facePhotoKey"']];
+    const results = await Promise.all(cols.map(async ([col, dbCol]) => {
       const val = f[col];
-      if (!val || !isLegacyUrl(val)) continue;
+      if (!val || !isLegacyUrl(val)) return { dbCol, status: 'skip' };
 
       const newKey = await migrateAsset(val, {
         folder: 'worker-documents',
@@ -209,16 +213,15 @@ async function main() {
         table: 'criminal_verification_forms',
       });
 
-      if (newKey && newKey !== val) {
-        updates[dbCol] = newKey;
-        hasUpdate = true;
-        succeeded++;
-      } else if (!newKey) {
-        failed++;
-        if (!failedUrls.has(val)) failedUrls.set(val, 'download failed');
-      } else {
-        skipped++;
-      }
+      if (newKey && newKey !== val) return { dbCol, status: 'ok', newKey };
+      if (!newKey) { if (!failedUrls.has(val)) failedUrls.set(val, 'download failed'); return { dbCol, status: 'fail' }; }
+      return { dbCol, status: 'already' };
+    }));
+
+    for (const r of results) {
+      if (r.status === 'ok') { updates[r.dbCol] = r.newKey; hasUpdate = true; formSucceeded++; }
+      else if (r.status === 'fail') formFailed++;
+      else if (r.status === 'already') formSkipped++;
     }
 
     if (hasUpdate) {
@@ -231,13 +234,27 @@ async function main() {
       }
       vals.push(f.form_id);
       await db.query(`UPDATE criminal_verification_forms SET ${sets.join(', ')} WHERE id = $${idx}`, vals);
-      updated++;
     }
 
-    processed++;
-    if (processed % SAVE_INTERVAL === 0) {
+    return { hasUpdate, formSucceeded, formFailed, formSkipped };
+  }
+
+  // Process forms in parallel batches
+  for (let i = 0; i < forms.length; i += CONCURRENCY) {
+    const batch = forms.slice(i, i + CONCURRENCY);
+    const results = await Promise.all(batch.map(f => processForm(f)));
+
+    for (const r of results) {
+      processed++;
+      succeeded += r.formSucceeded;
+      failed += r.formFailed;
+      skipped += r.formSkipped;
+      if (r.hasUpdate) updated++;
+    }
+
+    if (processed % SAVE_INTERVAL < CONCURRENCY) {
       saveAssetMap();
-      console.log(`  Processed: ${processed}/${forms.length} | Updated: ${updated} | Failed: ${failed}`);
+      console.log(`  Processed: ${processed}/${forms.length} | Updated: ${updated} | Failed: ${failed} | Succeeded: ${succeeded}`);
     }
   }
 
