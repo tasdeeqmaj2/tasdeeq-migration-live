@@ -27,7 +27,7 @@ async function run() {
   let oldDb = null;
   if (OLD_DB_URL) {
     try {
-      oldDb = new Client({ connectionString: OLD_DB_URL });
+      oldDb = new Client({ connectionString: OLD_DB_URL, ssl: { rejectUnauthorized: false } });
       await oldDb.connect();
       console.log('Connected to OLD DB\n');
     } catch (e) {
