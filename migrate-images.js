@@ -1,23 +1,12 @@
 /**
- * Migrate worker images from old S3 bucket (tasdeeqimage, us-east-2) to new MinIO.
- *
- * For each migrated company's workers:
- * 1. Look up old DB image URLs (worker table + employment_document table)
- * 2. Extract the asset_name (= S3 key in old bucket)
- * 3. Download from old S3
- * 4. Upload to new MinIO with the new key format (folder/uuid.ext)
- * 5. Update criminal_verification_forms with the new keys
+ * Migrate worker images from old S3 bucket (tasdeeqimage, us-east-2) to new S3.
  *
  * DRY RUN by default. Set DRY_RUN=false to execute.
- *
- * Env vars needed:
- *   NEW_DATABASE_URL, OLD_DATABASE_URL
- *   AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY (for old S3)
- *   S3_ENDPOINT, S3_ACCESS_KEY, S3_SECRET_KEY, S3_BUCKET (for new MinIO)
+ * Set CONCURRENCY=N to control parallel S3 transfers (default 10).
  */
 require('dotenv').config();
 const { Client } = require('pg');
-const { S3Client, GetObjectCommand, PutObjectCommand, HeadObjectCommand } = require('@aws-sdk/client-s3');
+const { S3Client, GetObjectCommand, PutObjectCommand } = require('@aws-sdk/client-s3');
 const { randomUUID } = require('crypto');
 
 const NEW_DB_URL = process.env.NEW_DATABASE_URL;
@@ -25,29 +14,23 @@ const OLD_DB_URL = process.env.OLD_DATABASE_URL;
 if (!NEW_DB_URL || !OLD_DB_URL) { console.error('Set both DB URLs in .env'); process.exit(1); }
 
 const DRY_RUN = process.env.DRY_RUN !== 'false';
+const CONCURRENCY = parseInt(process.env.CONCURRENCY || '10', 10);
 const SSL = { rejectUnauthorized: false };
 
-// Old S3 (AWS)
 const OLD_BUCKET = 'tasdeeqimage';
 const OLD_REGION = 'us-east-2';
 const oldS3 = new S3Client({ region: OLD_REGION });
 
-// New S3 bucket (production)
 const NEW_BUCKET = process.env.S3_BUCKET || 'tasdeeq-prod-assets';
 const NEW_REGION = process.env.S3_REGION || 'us-east-2';
 const newS3 = process.env.S3_ENDPOINT
   ? new S3Client({
-      endpoint: process.env.S3_ENDPOINT,
-      region: NEW_REGION,
-      credentials: {
-        accessKeyId: process.env.S3_ACCESS_KEY || 'minioadmin',
-        secretAccessKey: process.env.S3_SECRET_KEY || 'minioadmin',
-      },
+      endpoint: process.env.S3_ENDPOINT, region: NEW_REGION,
+      credentials: { accessKeyId: process.env.S3_ACCESS_KEY || 'minioadmin', secretAccessKey: process.env.S3_SECRET_KEY || 'minioadmin' },
       forcePathStyle: true,
     })
-  : new S3Client({ region: NEW_REGION }); // Uses default AWS credentials
+  : new S3Client({ region: NEW_REGION });
 
-// All migrated companies (same 21 from backfill + HRBS)
 const MAPPINGS = [
   { target_id: 'cmwnhyifyc18620bc14f11488', old_user_id: 56137, name: 'Osama Moin' },
   { target_id: 'cmwnhyifz23013d9398666cdc', old_user_id: 59103, name: 'Foodpanda' },
@@ -75,18 +58,17 @@ const MAPPINGS = [
 
 function extractAssetName(url) {
   if (!url) return null;
-  const match = url.match(/asset_name=(.+)$/);
-  return match ? match[1] : null;
+  const m = url.match(/asset_name=(.+)$/);
+  return m ? m[1] : null;
 }
 
 async function downloadFromOldS3(key) {
-  // Try with key as-is, then with .jpg appended
   for (const tryKey of [key, key + '.jpg']) {
     try {
       const res = await oldS3.send(new GetObjectCommand({ Bucket: OLD_BUCKET, Key: tryKey }));
       const chunks = [];
       for await (const chunk of res.Body) chunks.push(chunk);
-      return { buffer: Buffer.concat(chunks), contentType: res.ContentType || 'image/jpeg', key: tryKey };
+      return { buffer: Buffer.concat(chunks), contentType: res.ContentType || 'image/jpeg' };
     } catch (err) {
       if (err.name === 'NoSuchKey') continue;
       throw err;
@@ -95,13 +77,25 @@ async function downloadFromOldS3(key) {
   return null;
 }
 
-async function uploadToNewMinIO(buffer, contentType, folder) {
+async function uploadToNewS3(buffer, contentType, folder) {
   const ext = contentType.includes('png') ? 'png' : contentType.includes('webp') ? 'webp' : 'jpg';
   const key = `${folder}/${randomUUID()}.${ext}`;
-  await newS3.send(new PutObjectCommand({
-    Bucket: NEW_BUCKET, Key: key, Body: buffer, ContentType: contentType,
-  }));
+  await newS3.send(new PutObjectCommand({ Bucket: NEW_BUCKET, Key: key, Body: buffer, ContentType: contentType }));
   return key;
+}
+
+// Run tasks with concurrency limit
+async function pooled(tasks, concurrency) {
+  const results = [];
+  let idx = 0;
+  async function worker() {
+    while (idx < tasks.length) {
+      const i = idx++;
+      results[i] = await tasks[i]();
+    }
+  }
+  await Promise.all(Array.from({ length: Math.min(concurrency, tasks.length) }, () => worker()));
+  return results;
 }
 
 async function run() {
@@ -110,134 +104,126 @@ async function run() {
   await newDb.connect();
   await oldDb.connect();
 
-  console.log(`MODE: ${DRY_RUN ? '🔍 DRY RUN' : '🚀 LIVE'}\n`);
+  console.log(`MODE: ${DRY_RUN ? '🔍 DRY RUN' : '🚀 LIVE'}  CONCURRENCY: ${CONCURRENCY}\n`);
 
-  let totalForms = 0, totalPhoto = 0, totalFront = 0, totalBack = 0, totalNotFound = 0, totalAlreadyHave = 0;
+  let totalPhoto = 0, totalFront = 0, totalBack = 0, totalNotFound = 0, totalSkipped = 0;
 
   for (const m of MAPPINGS) {
+    const t0 = Date.now();
     console.log(`\n${'═'.repeat(60)}`);
     console.log(`${m.name} (old user: ${m.old_user_id})`);
-    console.log('═'.repeat(60));
 
-    // Get all forms for this company that are missing images
+    // 1. Get all forms missing images — single query
     const { rows: forms } = await newDb.query(`
-      SELECT cf.id AS form_id, cf."taskId", cf."cnicNumber",
-             cf."cnicFrontKey", cf."cnicBackKey", cf."facePhotoKey",
-             w.cnic
+      SELECT cf.id AS form_id, cf."cnicFrontKey", cf."cnicBackKey", cf."facePhotoKey", w.cnic
       FROM criminal_verification_forms cf
       JOIN verification_tasks vt ON vt.id = cf."taskId"
       JOIN workers w ON w.id = vt."workerId"
       WHERE vt."companyId" = $1
+        AND (cf."cnicFrontKey" IS NULL OR cf."cnicBackKey" IS NULL OR cf."facePhotoKey" IS NULL)
     `, [m.target_id]);
 
-    const needImages = forms.filter(f => !f.cnicFrontKey || !f.cnicBackKey || !f.facePhotoKey);
-    console.log(`  Total forms: ${forms.length}, missing images: ${needImages.length}`);
-    totalForms += needImages.length;
+    if (forms.length === 0) { console.log(`  No forms missing images. (${Date.now() - t0}ms)`); continue; }
 
-    if (needImages.length === 0) continue;
-
-    // Build old worker map by CNIC
-    const cnics = [...new Set(needImages.map(f => f.cnic).filter(Boolean))];
-    const oldImageMap = new Map(); // cnic → { photo, front, back }
+    // 2. Batch fetch old image URLs — two queries total
+    const cnics = [...new Set(forms.map(f => f.cnic).filter(Boolean))];
+    const oldImageMap = new Map();
 
     if (cnics.length > 0) {
-      // Get old worker IDs
+      // Get old worker IDs in one query
       const { rows: oldWorkers } = await oldDb.query(
-        `SELECT id, cnic FROM worker WHERE cnic = ANY($1::text[])`, [cnics]
+        `SELECT id, cnic, picture_link, cnic_front_picture_link, cnic_back_picture_link FROM worker WHERE cnic = ANY($1::text[])`,
+        [cnics]
       );
+      const workerByCnic = new Map();
+      for (const ow of oldWorkers) workerByCnic.set(ow.cnic, ow);
 
-      // For each old worker, get their employment document images (most detailed)
-      for (const ow of oldWorkers) {
+      // Get employment docs in one batch query
+      const oldWorkerIds = oldWorkers.map(w => w.id);
+      const docMap = new Map();
+      if (oldWorkerIds.length > 0) {
         const { rows: docs } = await oldDb.query(`
-          SELECT d.picture_link, d.cnic_front_picture_link, d.cnic_back_picture_link
+          SELECT DISTINCT ON (uwe.worker_id)
+                 uwe.worker_id,
+                 d.picture_link, d.cnic_front_picture_link, d.cnic_back_picture_link
           FROM user_worker_employment uwe
           JOIN user_worker_employment_document d ON d.user_worker_employment_id = uwe.id
-          WHERE uwe.worker_id = $1 AND uwe.user_id = $2
-          ORDER BY uwe.registration_timestamp DESC LIMIT 1
-        `, [ow.id, m.old_user_id]);
+          WHERE uwe.worker_id = ANY($1::bigint[]) AND uwe.user_id = $2
+          ORDER BY uwe.worker_id, uwe.registration_timestamp DESC
+        `, [oldWorkerIds, m.old_user_id]);
+        for (const d of docs) docMap.set(String(d.worker_id), d);
+      }
 
-        if (docs.length > 0) {
-          oldImageMap.set(ow.cnic, {
-            photo: extractAssetName(docs[0].picture_link),
-            front: extractAssetName(docs[0].cnic_front_picture_link),
-            back: extractAssetName(docs[0].cnic_back_picture_link),
-          });
-        } else {
-          // Fall back to worker table images
-          const { rows: wImgs } = await oldDb.query(
-            `SELECT picture_link, cnic_front_picture_link, cnic_back_picture_link FROM worker WHERE id = $1`,
-            [ow.id]
-          );
-          if (wImgs.length > 0) {
-            oldImageMap.set(ow.cnic, {
-              photo: extractAssetName(wImgs[0].picture_link),
-              front: extractAssetName(wImgs[0].cnic_front_picture_link),
-              back: extractAssetName(wImgs[0].cnic_back_picture_link),
-            });
-          }
-        }
+      // Build image map: prefer employment doc, fall back to worker table
+      for (const ow of oldWorkers) {
+        const doc = docMap.get(String(ow.id));
+        const src = doc || ow;
+        oldImageMap.set(ow.cnic, {
+          photo: extractAssetName(src.picture_link),
+          front: extractAssetName(src.cnic_front_picture_link),
+          back: extractAssetName(src.cnic_back_picture_link),
+        });
       }
     }
 
+    console.log(`  Forms missing images: ${forms.length}, matched in old DB: ${oldImageMap.size}/${cnics.length}`);
+
+    // 3. Build transfer tasks
     let companyPhoto = 0, companyFront = 0, companyBack = 0, companyNotFound = 0;
 
-    for (const form of needImages) {
-      const imgs = oldImageMap.get(form.cnic);
-      if (!imgs) { companyNotFound++; continue; }
+    if (DRY_RUN) {
+      for (const form of forms) {
+        const imgs = oldImageMap.get(form.cnic);
+        if (!imgs) { companyNotFound++; continue; }
+        if (!form.facePhotoKey && imgs.photo) companyPhoto++;
+        if (!form.cnicFrontKey && imgs.front) companyFront++;
+        if (!form.cnicBackKey && imgs.back) companyBack++;
+      }
+    } else {
+      // Build all transfer+update tasks, then run with concurrency
+      const tasks = [];
+      for (const form of forms) {
+        const imgs = oldImageMap.get(form.cnic);
+        if (!imgs) { companyNotFound++; continue; }
 
-      const updates = {};
+        tasks.push(async () => {
+          const updates = {};
+          let p = 0, f = 0, b = 0;
 
-      // Face photo
-      if (!form.facePhotoKey && imgs.photo) {
-        if (DRY_RUN) { companyPhoto++; }
-        else {
-          const dl = await downloadFromOldS3(imgs.photo);
-          if (dl) {
-            const newKey = await uploadToNewMinIO(dl.buffer, dl.contentType, 'face-photos');
-            updates.facePhotoKey = newKey;
-            companyPhoto++;
+          if (!form.facePhotoKey && imgs.photo) {
+            const dl = await downloadFromOldS3(imgs.photo);
+            if (dl) { updates.facePhotoKey = await uploadToNewS3(dl.buffer, dl.contentType, 'face-photos'); p = 1; }
           }
-        }
+          if (!form.cnicFrontKey && imgs.front) {
+            const dl = await downloadFromOldS3(imgs.front);
+            if (dl) { updates.cnicFrontKey = await uploadToNewS3(dl.buffer, dl.contentType, 'cnic-images'); f = 1; }
+          }
+          if (!form.cnicBackKey && imgs.back) {
+            const dl = await downloadFromOldS3(imgs.back);
+            if (dl) { updates.cnicBackKey = await uploadToNewS3(dl.buffer, dl.contentType, 'cnic-images'); b = 1; }
+          }
+
+          if (Object.keys(updates).length > 0) {
+            const setClauses = Object.entries(updates).map(([k], i) => `"${k}" = $${i + 2}`);
+            await newDb.query(
+              `UPDATE criminal_verification_forms SET ${setClauses.join(', ')} WHERE id = $1`,
+              [form.form_id, ...Object.values(updates)]
+            );
+          }
+          return { p, f, b };
+        });
       }
 
-      // CNIC front
-      if (!form.cnicFrontKey && imgs.front) {
-        if (DRY_RUN) { companyFront++; }
-        else {
-          const dl = await downloadFromOldS3(imgs.front);
-          if (dl) {
-            const newKey = await uploadToNewMinIO(dl.buffer, dl.contentType, 'cnic-images');
-            updates.cnicFrontKey = newKey;
-            companyFront++;
-          }
+      if (tasks.length > 0) {
+        const results = await pooled(tasks, CONCURRENCY);
+        for (const r of results) {
+          if (r) { companyPhoto += r.p; companyFront += r.f; companyBack += r.b; }
         }
-      }
-
-      // CNIC back
-      if (!form.cnicBackKey && imgs.back) {
-        if (DRY_RUN) { companyBack++; }
-        else {
-          const dl = await downloadFromOldS3(imgs.back);
-          if (dl) {
-            const newKey = await uploadToNewMinIO(dl.buffer, dl.contentType, 'cnic-images');
-            updates.cnicBackKey = newKey;
-            companyBack++;
-          }
-        }
-      }
-
-      // Update the form
-      if (!DRY_RUN && Object.keys(updates).length > 0) {
-        const setClauses = Object.entries(updates).map(([k], i) => `"${k}" = $${i + 2}`);
-        const values = Object.values(updates);
-        await newDb.query(
-          `UPDATE criminal_verification_forms SET ${setClauses.join(', ')} WHERE id = $1`,
-          [form.form_id, ...values]
-        );
       }
     }
 
-    console.log(`  Photos: ${companyPhoto}, Fronts: ${companyFront}, Backs: ${companyBack}, Not found: ${companyNotFound}`);
+    const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+    console.log(`  Photos: ${companyPhoto}, Fronts: ${companyFront}, Backs: ${companyBack}, Not found: ${companyNotFound} (${elapsed}s)`);
     totalPhoto += companyPhoto;
     totalFront += companyFront;
     totalBack += companyBack;
@@ -247,12 +233,10 @@ async function run() {
   console.log(`\n${'═'.repeat(60)}`);
   console.log('SUMMARY');
   console.log('═'.repeat(60));
-  console.log(`  Forms needing images: ${totalForms}`);
   console.log(`  Photos ${DRY_RUN ? 'to migrate' : 'migrated'}: ${totalPhoto}`);
   console.log(`  CNIC fronts ${DRY_RUN ? 'to migrate' : 'migrated'}: ${totalFront}`);
   console.log(`  CNIC backs ${DRY_RUN ? 'to migrate' : 'migrated'}: ${totalBack}`);
   console.log(`  Not found in old DB: ${totalNotFound}`);
-  console.log(`  Mode: ${DRY_RUN ? 'DRY RUN' : 'LIVE'}`);
 
   await newDb.end();
   await oldDb.end();
