@@ -125,16 +125,17 @@ async function main() {
   }
 
   // === 5. Verifications with missing images (new DB) ===
+  // Columns: criminal_verification_forms.cnicFrontKey, cnicBackKey, facePhotoKey
   console.log('\n=== VERIFICATIONS WITH MISSING IMAGES (new DB) ===');
   const { rows: imgStats } = await newDb.query(`
     SELECT
       COUNT(*)::int AS total_forms,
-      SUM(CASE WHEN cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '' THEN 1 ELSE 0 END)::int AS no_front,
-      SUM(CASE WHEN cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '' THEN 1 ELSE 0 END)::int AS no_back,
-      SUM(CASE WHEN cf."workerPhoto" IS NULL OR cf."workerPhoto" = '' THEN 1 ELSE 0 END)::int AS no_photo,
-      SUM(CASE WHEN (cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '')
-                AND (cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '')
-                AND (cf."workerPhoto" IS NULL OR cf."workerPhoto" = '') THEN 1 ELSE 0 END)::int AS all_missing
+      SUM(CASE WHEN cf."cnicFrontKey" IS NULL OR cf."cnicFrontKey" = '' THEN 1 ELSE 0 END)::int AS no_front,
+      SUM(CASE WHEN cf."cnicBackKey" IS NULL OR cf."cnicBackKey" = '' THEN 1 ELSE 0 END)::int AS no_back,
+      SUM(CASE WHEN cf."facePhotoKey" IS NULL OR cf."facePhotoKey" = '' THEN 1 ELSE 0 END)::int AS no_photo,
+      SUM(CASE WHEN (cf."cnicFrontKey" IS NULL OR cf."cnicFrontKey" = '')
+                AND (cf."cnicBackKey" IS NULL OR cf."cnicBackKey" = '')
+                AND (cf."facePhotoKey" IS NULL OR cf."facePhotoKey" = '') THEN 1 ELSE 0 END)::int AS all_missing
     FROM criminal_verification_forms cf
     JOIN verification_tasks vt ON vt.id = cf."taskId"
     WHERE vt.status IN ('PENDING', 'ASSIGNED', 'COMPLETED')
@@ -143,7 +144,7 @@ async function main() {
   console.log(`Total active forms: ${is.total_forms}`);
   console.log(`Missing CNIC front: ${is.no_front}`);
   console.log(`Missing CNIC back: ${is.no_back}`);
-  console.log(`Missing worker photo: ${is.no_photo}`);
+  console.log(`Missing face photo: ${is.no_photo}`);
   console.log(`ALL images missing: ${is.all_missing}`);
 
   // === 6. For forms with missing images, check old DB for the source ===
@@ -163,15 +164,15 @@ async function main() {
 
   // Get forms with missing images
   const { rows: formsWithMissingImgs } = await newDb.query(`
-    SELECT cf."taskId", cf."cnicFrontImage", cf."cnicBackImage", cf."workerPhoto",
+    SELECT cf."taskId", cf."cnicFrontKey", cf."cnicBackKey", cf."facePhotoKey",
            w.name AS worker_name, w.cnic
     FROM criminal_verification_forms cf
     JOIN verification_tasks vt ON vt.id = cf."taskId"
     JOIN workers w ON w.id = vt."workerId"
     WHERE vt.status IN ('PENDING', 'ASSIGNED', 'COMPLETED')
-      AND ((cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '')
-        OR (cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '')
-        OR (cf."workerPhoto" IS NULL OR cf."workerPhoto" = ''))
+      AND ((cf."cnicFrontKey" IS NULL OR cf."cnicFrontKey" = '')
+        OR (cf."cnicBackKey" IS NULL OR cf."cnicBackKey" = '')
+        OR (cf."facePhotoKey" IS NULL OR cf."facePhotoKey" = ''))
   `);
 
   console.log(`Forms with at least one missing image: ${formsWithMissingImgs.length}`);
@@ -188,7 +189,7 @@ async function main() {
       continue;
     }
 
-    // Check old DB for images
+    // Check old DB for images — employment_document first, then worker table
     const { rows: oldDocs } = await oldDb.query(`
       SELECT d.cnic_front_picture_link, d.cnic_back_picture_link, d.picture_link
       FROM user_worker_employment_document d
@@ -198,7 +199,6 @@ async function main() {
       LIMIT 1
     `, [oldEmpId]);
 
-    // Also check worker table directly
     const { rows: oldWorker } = await oldDb.query(`
       SELECT w.cnic_front_picture_link, w.cnic_back_picture_link, w.picture_link
       FROM worker w
@@ -211,9 +211,9 @@ async function main() {
     const wkr = oldWorker[0] || {};
 
     const canRecover = {
-      front: (!f.cnicFrontImage || f.cnicFrontImage === '') && (doc.cnic_front_picture_link || wkr.cnic_front_picture_link),
-      back: (!f.cnicBackImage || f.cnicBackImage === '') && (doc.cnic_back_picture_link || wkr.cnic_back_picture_link),
-      photo: (!f.workerPhoto || f.workerPhoto === '') && (doc.picture_link || wkr.picture_link),
+      front: (!f.cnicFrontKey || f.cnicFrontKey === '') && (doc.cnic_front_picture_link || wkr.cnic_front_picture_link),
+      back: (!f.cnicBackKey || f.cnicBackKey === '') && (doc.cnic_back_picture_link || wkr.cnic_back_picture_link),
+      photo: (!f.facePhotoKey || f.facePhotoKey === '') && (doc.picture_link || wkr.picture_link),
     };
 
     if (canRecover.front || canRecover.back || canRecover.photo) {
@@ -270,16 +270,19 @@ async function main() {
   console.log(`With credit_status: ${creditInfo.with_credit}`);
   console.log(`With available units > 0: ${creditInfo.with_units}`);
 
-  // === 9. Worker photo column check ===
-  console.log('\n=== WORKER PHOTOS (worker.photo column) ===');
-  const { rows: [photoStats] } = await newDb.query(`
-    SELECT COUNT(*)::int AS total,
-           SUM(CASE WHEN photo IS NOT NULL AND photo != '' THEN 1 ELSE 0 END)::int AS with_photo
-    FROM workers
-  `);
-  console.log(`Total workers: ${photoStats.total}`);
-  console.log(`With photo: ${photoStats.with_photo}`);
-  console.log(`Without photo: ${photoStats.total - photoStats.with_photo}`);
+  // === 9. Worker documents check ===
+  console.log('\n=== WORKER DOCUMENTS (new DB) ===');
+  try {
+    const { rows: [docStats] } = await newDb.query(`
+      SELECT COUNT(*)::int AS total,
+             COUNT(DISTINCT "workerId")::int AS unique_workers
+      FROM worker_documents
+    `);
+    console.log(`Total worker_documents: ${docStats.total}`);
+    console.log(`Workers with documents: ${docStats.unique_workers}`);
+  } catch (e) {
+    console.log(`worker_documents: ${e.message.slice(0, 60)}`);
+  }
 
   await newDb.end();
   await oldDb.end();
