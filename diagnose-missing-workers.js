@@ -1,307 +1,288 @@
 /**
- * Find all workers missing on production vs local, with their verifications.
+ * Diagnose missing workers, verifications, and images on production vs local,
+ * and cross-reference with the old (legacy) DB to find the source data.
  *
- * Usage:
- *   DATABASE_URL="..." node diagnose-missing-workers.js
+ * Usage (on server):
+ *   DATABASE_URL="<prod>" OLD_DATABASE_URL="<old-prod>" node diagnose-missing-workers.js
+ *
+ * Usage (local — reads .env automatically for OLD, hardcodes local new DB):
+ *   node diagnose-missing-workers.js
+ *
+ * Add --prod to use DATABASE_URL for the new DB (with SSL).
  */
 
 const { Client } = require('pg');
 
-const LOCAL_URL = 'postgresql://postgres:12345678@127.0.0.1:5433/tasdeeq';
-const PROD_URL = process.env.DATABASE_URL;
+const PROD = process.argv.includes('--prod');
 
-if (!PROD_URL) {
-  console.error('Set DATABASE_URL env var for production.');
-  process.exit(1);
+const LOCAL_NEW_URL = 'postgresql://postgres:12345678@127.0.0.1:5433/tasdeeq';
+
+// For prod: pass DATABASE_URL and OLD_DATABASE_URL as env vars
+// For local: reads old from .env, new is hardcoded
+let NEW_URL, OLD_URL;
+if (PROD) {
+  NEW_URL = process.env.DATABASE_URL;
+  OLD_URL = process.env.OLD_DATABASE_URL;
+  if (!NEW_URL) { console.error('Set DATABASE_URL for production new DB'); process.exit(1); }
+  if (!OLD_URL) { console.error('Set OLD_DATABASE_URL for production old DB'); process.exit(1); }
+} else {
+  require('dotenv').config();
+  NEW_URL = LOCAL_NEW_URL;
+  OLD_URL = process.env.OLD_DATABASE_URL || 'postgresql://postgres:12345678@127.0.0.1:5432/tasdeeq-prod-dump';
+}
+
+async function connect(url, name, ssl) {
+  const c = new Client({ connectionString: url, ssl: ssl ? { rejectUnauthorized: false } : false });
+  await c.connect();
+  console.log(`Connected to ${name}`);
+  return c;
 }
 
 async function main() {
-  const local = new Client({ connectionString: LOCAL_URL });
-  const prod = new Client({ connectionString: PROD_URL, ssl: { rejectUnauthorized: false } });
-  await local.connect();
-  await prod.connect();
-  console.log('Connected to both DBs.\n');
+  const newDb = await connect(NEW_URL, PROD ? 'PRODUCTION (new)' : 'LOCAL (new)', PROD);
+  const oldDb = await connect(OLD_URL, PROD ? 'PRODUCTION (old)' : 'LOCAL (old)', PROD);
 
-  // Get all workers from local with their company and verifications
-  const localQuery = `
-    SELECT w.id, w.name, w.cnic, w.email, w.mobile, w."companyId",
-           c.name AS company_name,
-           COUNT(vt.id)::int AS task_count,
-           STRING_AGG(DISTINCT vt.status, ', ') AS statuses,
-           STRING_AGG(DISTINCT vt.type, ', ') AS types
+  // Load worker map if available (old employment id → new worker id)
+  let workerMap = {};
+  try { workerMap = require('./maps/workerMap.json'); } catch (e) {}
+  const workerMapSize = Object.keys(workerMap).length;
+  console.log(`Worker map entries: ${workerMapSize}\n`);
+
+  // === 1. Table counts ===
+  console.log('=== TABLE COUNTS (new DB) ===');
+  const tables = ['users','companies','corporate_users','workers','verification_tasks','criminal_verification_forms','invoices','credit_statuses'];
+  for (const t of tables) {
+    try {
+      const { rows: [{ cnt }] } = await newDb.query(`SELECT COUNT(*)::int AS cnt FROM "${t}"`);
+      console.log(`  ${t}: ${cnt}`);
+    } catch (e) { console.log(`  ${t}: ERROR`); }
+  }
+
+  // === 2. Old DB counts ===
+  console.log('\n=== OLD DB COUNTS ===');
+  const oldTables = [
+    ['user_worker_employment', 'Total employments (workers)'],
+    ['worker', 'Unique workers'],
+    ['user_worker_employment_document', 'Worker documents (images)'],
+    ['users', 'Users'],
+  ];
+  for (const [t, label] of oldTables) {
+    try {
+      const { rows: [{ cnt }] } = await oldDb.query(`SELECT COUNT(*)::int AS cnt FROM "${t}"`);
+      console.log(`  ${label} (${t}): ${cnt}`);
+    } catch (e) { console.log(`  ${label} (${t}): ERROR - ${e.message.slice(0, 60)}`); }
+  }
+
+  // === 3. Find old employments NOT in new DB ===
+  console.log('\n=== OLD EMPLOYMENTS MISSING IN NEW DB ===');
+  const allOldEmployments = (await oldDb.query(`SELECT id FROM user_worker_employment ORDER BY id`)).rows.map(r => r.id);
+  const mappedOldIds = new Set(Object.keys(workerMap).map(Number));
+
+  const unmappedOldIds = allOldEmployments.filter(id => !mappedOldIds.has(id));
+  console.log(`Total old employments: ${allOldEmployments.length}`);
+  console.log(`Mapped to new DB: ${mappedOldIds.size}`);
+  console.log(`Unmapped (never migrated): ${unmappedOldIds.length}`);
+
+  if (unmappedOldIds.length > 0) {
+    // Get details of unmapped from old DB
+    const sample = unmappedOldIds.slice(0, 50);
+    const ph = sample.map((_, i) => `$${i + 1}`).join(',');
+    const unmappedDetails = (await oldDb.query(`
+      SELECT e.id, e.full_name, e.user_id, w.cnic,
+             e.cplc_verification_status, e.sindh_police_verification_status
+      FROM user_worker_employment e
+      INNER JOIN worker w ON w.id = e.worker_id
+      WHERE e.id IN (${ph})
+      ORDER BY e.id
+    `, sample)).rows;
+
+    console.log(`\nSample unmapped (first ${sample.length}):`);
+    for (const r of unmappedDetails) {
+      console.log(`  old#${r.id} | ${r.full_name || 'NULL'} | CNIC: ${r.cnic || 'NULL'} | user: ${r.user_id} | cplc: ${r.cplc_verification_status || 'NULL'} | sindh: ${r.sindh_police_verification_status || 'NULL'}`);
+    }
+  }
+
+  // === 4. Workers in new DB (local) but missing on prod (if running on prod) ===
+  // Skip this if not prod — both would be same DB
+  // Instead, check new DB workers that have missing verification tasks
+  console.log('\n=== NEW DB: WORKERS WITHOUT ANY VERIFICATION TASK ===');
+  const { rows: orphanWorkers } = await newDb.query(`
+    SELECT w.id, w.name, w.cnic, c.name AS company_name
     FROM workers w
     JOIN companies c ON c.id = w."companyId"
     LEFT JOIN verification_tasks vt ON vt."workerId" = w.id
-    GROUP BY w.id, w.name, w.cnic, w.email, w.mobile, w."companyId", c.name
-    ORDER BY c.name, w.name
-  `;
-
-  const localWorkers = (await local.query(localQuery)).rows;
-
-  // Get all worker IDs and CNICs on prod
-  const prodWorkerIds = new Set((await prod.query(`SELECT id FROM workers`)).rows.map(r => r.id));
-  const prodWorkerCnics = new Set(
-    (await prod.query(`SELECT cnic FROM workers WHERE cnic IS NOT NULL AND cnic != ''`)).rows.map(r => r.cnic)
-  );
-
-  // Also get prod verification task worker IDs
-  const prodTaskWorkerIds = new Set(
-    (await prod.query(`SELECT DISTINCT "workerId" FROM verification_tasks`)).rows.map(r => r.workerId)
-  );
-
-  // Find missing workers
-  const missingById = localWorkers.filter(w => !prodWorkerIds.has(w.id));
-  const missingByCnic = localWorkers.filter(w => w.cnic && !prodWorkerCnics.has(w.cnic) && !prodWorkerIds.has(w.id));
-  const presentByCnicButDiffId = missingById.filter(w => w.cnic && prodWorkerCnics.has(w.cnic));
-
-  console.log(`=== SUMMARY ===`);
-  console.log(`Total local workers: ${localWorkers.length}`);
-  console.log(`Total prod workers: ${prodWorkerIds.size}`);
-  console.log(`Missing on prod (by ID): ${missingById.length}`);
-  console.log(`Missing on prod (by CNIC, truly absent): ${missingByCnic.length}`);
-  console.log(`Missing ID but CNIC exists on prod (different worker row): ${presentByCnicButDiffId.length}`);
-
-  // Detail: workers missing by ID
-  if (missingById.length > 0) {
-    console.log(`\n=== WORKERS MISSING ON PROD (by ID) — ${missingById.length} total ===`);
-    console.log('Worker ID | Name | CNIC | Company | Tasks | Statuses | CNIC on prod?');
-    console.log('-'.repeat(120));
-    for (const w of missingById) {
-      const cnicOnProd = w.cnic && prodWorkerCnics.has(w.cnic) ? 'YES' : 'no';
-      console.log(
-        `${w.id} | ${(w.name || '').padEnd(25)} | ${(w.cnic || 'NULL').padEnd(15)} | ${(w.company_name || '').padEnd(30)} | ${w.task_count} | ${w.statuses || 'none'} | ${cnicOnProd}`
-      );
-    }
+    WHERE vt.id IS NULL
+    LIMIT 20
+  `);
+  const { rows: [{ cnt: orphanCount }] } = await newDb.query(`
+    SELECT COUNT(*)::int AS cnt FROM workers w
+    LEFT JOIN verification_tasks vt ON vt."workerId" = w.id
+    WHERE vt.id IS NULL
+  `);
+  console.log(`Workers with no tasks: ${orphanCount}`);
+  for (const w of orphanWorkers) {
+    console.log(`  ${w.id} | ${w.name} | ${w.cnic} | ${w.company_name}`);
   }
 
-  // Check which companies these missing workers belong to — do the companies exist on prod?
-  const missingCompanyIds = [...new Set(missingById.map(w => w.companyId))];
-  if (missingCompanyIds.length > 0) {
-    const ph = missingCompanyIds.map((_, i) => `$${i + 1}`).join(',');
-    const prodCompanies = (await prod.query(
-      `SELECT id, name FROM companies WHERE id IN (${ph})`, missingCompanyIds
-    )).rows;
-    const prodCompanyIds = new Set(prodCompanies.map(c => c.id));
-    const missingCompanies = missingCompanyIds.filter(id => !prodCompanyIds.has(id));
+  // === 5. Verifications with missing images (new DB) ===
+  console.log('\n=== VERIFICATIONS WITH MISSING IMAGES (new DB) ===');
+  const { rows: imgStats } = await newDb.query(`
+    SELECT
+      COUNT(*)::int AS total_forms,
+      SUM(CASE WHEN cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '' THEN 1 ELSE 0 END)::int AS no_front,
+      SUM(CASE WHEN cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '' THEN 1 ELSE 0 END)::int AS no_back,
+      SUM(CASE WHEN cf."workerPhoto" IS NULL OR cf."workerPhoto" = '' THEN 1 ELSE 0 END)::int AS no_photo,
+      SUM(CASE WHEN (cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '')
+                AND (cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '')
+                AND (cf."workerPhoto" IS NULL OR cf."workerPhoto" = '') THEN 1 ELSE 0 END)::int AS all_missing
+    FROM criminal_verification_forms cf
+    JOIN verification_tasks vt ON vt.id = cf."taskId"
+    WHERE vt.status IN ('PENDING', 'ASSIGNED', 'COMPLETED')
+  `);
+  const is = imgStats[0];
+  console.log(`Total active forms: ${is.total_forms}`);
+  console.log(`Missing CNIC front: ${is.no_front}`);
+  console.log(`Missing CNIC back: ${is.no_back}`);
+  console.log(`Missing worker photo: ${is.no_photo}`);
+  console.log(`ALL images missing: ${is.all_missing}`);
 
-    console.log(`\n=== COMPANIES OF MISSING WORKERS ===`);
-    console.log(`Unique companies: ${missingCompanyIds.length}`);
-    console.log(`Companies exist on prod: ${prodCompanies.length}`);
-    console.log(`Companies ALSO missing on prod: ${missingCompanies.length}`);
+  // === 6. For forms with missing images, check old DB for the source ===
+  console.log('\n=== FORMS MISSING IMAGES — CHECKING OLD DB FOR SOURCE ===');
 
-    if (missingCompanies.length > 0) {
-      // Get company details from local
-      const ph2 = missingCompanies.map((_, i) => `$${i + 1}`).join(',');
-      const compDetails = (await local.query(
-        `SELECT c.id, c.name, c."isConsumer",
-                COUNT(DISTINCT w.id)::int AS worker_count,
-                COUNT(DISTINCT vt.id)::int AS task_count
-         FROM companies c
-         LEFT JOIN workers w ON w."companyId" = c.id
-         LEFT JOIN verification_tasks vt ON vt."companyId" = c.id
-         WHERE c.id IN (${ph2})
-         GROUP BY c.id, c.name, c."isConsumer"
-         ORDER BY c.name`,
-        missingCompanies
-      )).rows;
+  // Get task map (old employment id → new task id)
+  let taskMap = {};
+  try { taskMap = require('./maps/verificationTaskMap.json'); } catch (e) {}
+  const taskMapSize = Object.keys(taskMap).length;
+  console.log(`Task map entries: ${taskMapSize}`);
 
-      console.log('\nMissing companies detail:');
-      for (const c of compDetails) {
-        console.log(`  ${c.id} | ${c.name} | consumer: ${c.isConsumer} | workers: ${c.worker_count} | tasks: ${c.task_count}`);
-      }
-    }
+  // Build reverse map: new task id → old employment id
+  const reverseTaskMap = {};
+  for (const [oldId, newId] of Object.entries(taskMap)) {
+    reverseTaskMap[newId] = Number(oldId);
   }
 
-  // Check verification tasks for missing workers
-  console.log(`\n=== VERIFICATION TASKS OF MISSING WORKERS ===`);
-  const missingWorkerIds = missingById.map(w => w.id);
-  if (missingWorkerIds.length > 0) {
-    const ph = missingWorkerIds.map((_, i) => `$${i + 1}`).join(',');
-    const tasks = (await local.query(
-      `SELECT vt.id, vt.status, vt.type, vt."workerId", vt."companyId",
-              w.name AS worker_name, w.cnic, c.name AS company_name,
-              cf.id AS form_id,
-              cf."cnicFrontImage" IS NOT NULL AND cf."cnicFrontImage" != '' AS has_cnic_front,
-              cf."cnicBackImage" IS NOT NULL AND cf."cnicBackImage" != '' AS has_cnic_back,
-              cf."workerPhoto" IS NOT NULL AND cf."workerPhoto" != '' AS has_photo
-       FROM verification_tasks vt
-       JOIN workers w ON w.id = vt."workerId"
-       JOIN companies c ON c.id = vt."companyId"
-       LEFT JOIN criminal_verification_forms cf ON cf."taskId" = vt.id
-       WHERE vt."workerId" IN (${ph})
-       ORDER BY vt.status, c.name`,
-      missingWorkerIds
-    )).rows;
-
-    const byStatus = {};
-    for (const t of tasks) {
-      byStatus[t.status] = (byStatus[t.status] || 0) + 1;
-    }
-
-    console.log(`Total tasks: ${tasks.length}`);
-    console.log('By status:', Object.entries(byStatus).map(([s, c]) => `${s}: ${c}`).join(', '));
-
-    // Check which of these tasks exist on prod
-    const taskIds = tasks.map(t => t.id);
-    if (taskIds.length > 0) {
-      const ph2 = taskIds.map((_, i) => `$${i + 1}`).join(',');
-      const prodTasks = (await prod.query(
-        `SELECT id, status FROM verification_tasks WHERE id IN (${ph2})`, taskIds
-      )).rows;
-      const prodTaskIds = new Set(prodTasks.map(t => t.id));
-      const missingTasks = tasks.filter(t => !prodTaskIds.has(t.id));
-
-      console.log(`\nTasks also missing on prod: ${missingTasks.length} / ${tasks.length}`);
-      if (missingTasks.length > 0) {
-        console.log('\nTask ID | Status | Worker | CNIC | Company | Form | Images');
-        console.log('-'.repeat(140));
-        for (const t of missingTasks) {
-          const imgs = [
-            t.has_cnic_front ? 'front' : '',
-            t.has_cnic_back ? 'back' : '',
-            t.has_photo ? 'photo' : '',
-          ].filter(Boolean).join('+') || 'none';
-          console.log(
-            `${t.id} | ${t.status.padEnd(12)} | ${(t.worker_name || '').padEnd(25)} | ${(t.cnic || '').padEnd(15)} | ${(t.company_name || '').padEnd(30)} | ${t.form_id ? 'yes' : 'no'} | ${imgs}`
-          );
-        }
-      }
-    }
-  }
-
-  // Also check: workers that exist on prod but have missing verification tasks
-  console.log('\n=== VERIFICATION TASKS MISSING ON PROD (workers exist) ===');
-  const allLocalTasks = (await local.query(`SELECT id FROM verification_tasks`)).rows.map(r => r.id);
-  const allProdTasks = new Set((await prod.query(`SELECT id FROM verification_tasks`)).rows.map(r => r.id));
-  const missingTaskIds = allLocalTasks.filter(id => !allProdTasks.has(id));
-  console.log(`Total local tasks: ${allLocalTasks.length}`);
-  console.log(`Total prod tasks: ${allProdTasks.size}`);
-  console.log(`Tasks missing on prod: ${missingTaskIds.length}`);
-
-  if (missingTaskIds.length > 0 && missingTaskIds.length <= 500) {
-    const ph = missingTaskIds.map((_, i) => `$${i + 1}`).join(',');
-    const details = (await local.query(
-      `SELECT vt.id, vt.status, vt.type, w.name, w.cnic, c.name AS company_name
-       FROM verification_tasks vt
-       JOIN workers w ON w.id = vt."workerId"
-       JOIN companies c ON c.id = vt."companyId"
-       WHERE vt.id IN (${ph})
-       ORDER BY vt.status, c.name`,
-      missingTaskIds
-    )).rows;
-
-    const byStatus2 = {};
-    for (const t of details) {
-      byStatus2[t.status] = (byStatus2[t.status] || 0) + 1;
-    }
-    console.log('By status:', Object.entries(byStatus2).map(([s, c]) => `${s}: ${c}`).join(', '));
-
-    if (details.length <= 50) {
-      for (const t of details) {
-        console.log(`  ${t.id} | ${t.status} | ${t.name} | ${t.cnic} | ${t.company_name}`);
-      }
-    }
-  }
-
-  // Check verifications that EXIST on prod but have missing images compared to local
-  console.log('\n=== EXISTING VERIFICATIONS WITH MISSING IMAGES ON PROD ===');
-  const localImgs = (await local.query(`
+  // Get forms with missing images
+  const { rows: formsWithMissingImgs } = await newDb.query(`
     SELECT cf."taskId", cf."cnicFrontImage", cf."cnicBackImage", cf."workerPhoto",
-           w.name AS worker_name, w.cnic, c.name AS company_name, vt.status
+           w.name AS worker_name, w.cnic
     FROM criminal_verification_forms cf
     JOIN verification_tasks vt ON vt.id = cf."taskId"
     JOIN workers w ON w.id = vt."workerId"
-    JOIN companies c ON c.id = vt."companyId"
-    WHERE (cf."cnicFrontImage" IS NOT NULL AND cf."cnicFrontImage" != '')
-       OR (cf."cnicBackImage" IS NOT NULL AND cf."cnicBackImage" != '')
-       OR (cf."workerPhoto" IS NOT NULL AND cf."workerPhoto" != '')
-  `)).rows;
+    WHERE vt.status IN ('PENDING', 'ASSIGNED', 'COMPLETED')
+      AND ((cf."cnicFrontImage" IS NULL OR cf."cnicFrontImage" = '')
+        OR (cf."cnicBackImage" IS NULL OR cf."cnicBackImage" = '')
+        OR (cf."workerPhoto" IS NULL OR cf."workerPhoto" = ''))
+  `);
 
-  // Get all prod forms in one query
-  const prodForms = (await prod.query(`
-    SELECT cf."taskId", cf."cnicFrontImage", cf."cnicBackImage", cf."workerPhoto"
-    FROM criminal_verification_forms cf
-  `)).rows;
-  const prodFormMap = Object.fromEntries(prodForms.map(f => [f.taskId, f]));
+  console.log(`Forms with at least one missing image: ${formsWithMissingImgs.length}`);
 
-  let missingImgCount = 0;
-  const missingImgDetails = [];
+  // Look up old DB images for these
+  let recoverable = 0;
+  let notRecoverable = 0;
+  const recoverableDetails = [];
 
-  for (const lf of localImgs) {
-    const pf = prodFormMap[lf.taskId];
-    if (!pf) continue; // form doesn't exist on prod at all — covered above
-
-    const missing = [];
-    if (lf.cnicFrontImage && (!pf.cnicFrontImage || pf.cnicFrontImage === '')) {
-      missing.push('cnicFront');
-    }
-    if (lf.cnicBackImage && (!pf.cnicBackImage || pf.cnicBackImage === '')) {
-      missing.push('cnicBack');
-    }
-    if (lf.workerPhoto && (!pf.workerPhoto || pf.workerPhoto === '')) {
-      missing.push('photo');
+  for (const f of formsWithMissingImgs) {
+    const oldEmpId = reverseTaskMap[f.taskId];
+    if (!oldEmpId) {
+      notRecoverable++;
+      continue;
     }
 
-    if (missing.length > 0) {
-      missingImgCount++;
-      missingImgDetails.push({
-        taskId: lf.taskId,
-        worker: lf.worker_name,
-        cnic: lf.cnic,
-        company: lf.company_name,
-        status: lf.status,
-        missing,
-        localFront: lf.cnicFrontImage || 'NULL',
-        localBack: lf.cnicBackImage || 'NULL',
-        localPhoto: lf.workerPhoto || 'NULL',
-        prodFront: pf.cnicFrontImage || 'NULL',
-        prodBack: pf.cnicBackImage || 'NULL',
-        prodPhoto: pf.workerPhoto || 'NULL',
-      });
-    }
-  }
+    // Check old DB for images
+    const { rows: oldDocs } = await oldDb.query(`
+      SELECT d.cnic_front_picture_link, d.cnic_back_picture_link, d.picture_link
+      FROM user_worker_employment_document d
+      WHERE d.user_worker_employment_id = $1
+        AND d.is_active IS DISTINCT FROM false
+      ORDER BY d.id DESC
+      LIMIT 1
+    `, [oldEmpId]);
 
-  console.log(`Verifications on prod with missing images (local has them): ${missingImgCount}`);
-  if (missingImgDetails.length > 0) {
-    console.log('\nTask ID | Status | Worker | CNIC | Company | Missing | Local paths → Prod paths');
-    console.log('-'.repeat(160));
-    for (const d of missingImgDetails) {
-      console.log(
-        `${d.taskId} | ${d.status.padEnd(12)} | ${(d.worker || '').padEnd(20)} | ${(d.cnic || '').padEnd(15)} | ${(d.company || '').padEnd(25)} | ${d.missing.join(',')} `
-      );
-      if (d.missing.includes('cnicFront')) console.log(`    cnicFront: local="${d.localFront}" prod="${d.prodFront}"`);
-      if (d.missing.includes('cnicBack')) console.log(`    cnicBack:  local="${d.localBack}" prod="${d.prodBack}"`);
-      if (d.missing.includes('photo')) console.log(`    photo:     local="${d.localPhoto}" prod="${d.prodPhoto}"`);
-    }
-  }
+    // Also check worker table directly
+    const { rows: oldWorker } = await oldDb.query(`
+      SELECT w.cnic_front_picture_link, w.cnic_back_picture_link, w.picture_link
+      FROM worker w
+      INNER JOIN user_worker_employment e ON e.worker_id = w.id
+      WHERE e.id = $1
+      LIMIT 1
+    `, [oldEmpId]);
 
-  // Also check worker-level images (worker photo stored on worker row)
-  console.log('\n=== WORKER PHOTOS MISSING ON PROD (worker.photo column) ===');
-  const localWorkerPhotos = (await local.query(`
-    SELECT w.id, w.name, w.cnic, w.photo, c.name AS company_name
-    FROM workers w
-    JOIN companies c ON c.id = w."companyId"
-    WHERE w.photo IS NOT NULL AND w.photo != ''
-  `)).rows;
+    const doc = oldDocs[0] || {};
+    const wkr = oldWorker[0] || {};
 
-  const prodWorkerPhotos = (await prod.query(`
-    SELECT id, photo FROM workers WHERE photo IS NOT NULL AND photo != ''
-  `)).rows;
-  const prodWorkerPhotoMap = Object.fromEntries(prodWorkerPhotos.map(w => [w.id, w.photo]));
+    const canRecover = {
+      front: (!f.cnicFrontImage || f.cnicFrontImage === '') && (doc.cnic_front_picture_link || wkr.cnic_front_picture_link),
+      back: (!f.cnicBackImage || f.cnicBackImage === '') && (doc.cnic_back_picture_link || wkr.cnic_back_picture_link),
+      photo: (!f.workerPhoto || f.workerPhoto === '') && (doc.picture_link || wkr.picture_link),
+    };
 
-  let missingWorkerPhotoCount = 0;
-  for (const lw of localWorkerPhotos) {
-    if (prodWorkerIds.has(lw.id) && !prodWorkerPhotoMap[lw.id]) {
-      missingWorkerPhotoCount++;
-      if (missingWorkerPhotoCount <= 20) {
-        console.log(`  ${lw.id} | ${lw.name} | ${lw.cnic} | ${lw.company_name} | local: ${lw.photo}`);
+    if (canRecover.front || canRecover.back || canRecover.photo) {
+      recoverable++;
+      if (recoverableDetails.length < 20) {
+        recoverableDetails.push({
+          taskId: f.taskId,
+          worker: f.worker_name,
+          cnic: f.cnic,
+          oldEmpId,
+          front: canRecover.front ? (doc.cnic_front_picture_link || wkr.cnic_front_picture_link) : null,
+          back: canRecover.back ? (doc.cnic_back_picture_link || wkr.cnic_back_picture_link) : null,
+          photo: canRecover.photo ? (doc.picture_link || wkr.picture_link) : null,
+        });
       }
+    } else {
+      notRecoverable++;
     }
   }
-  console.log(`Total workers on prod missing photo: ${missingWorkerPhotoCount}`);
 
-  await local.end();
-  await prod.end();
+  console.log(`\nRecoverable from old DB: ${recoverable}`);
+  console.log(`Not recoverable (no old mapping or no old images): ${notRecoverable}`);
+
+  if (recoverableDetails.length > 0) {
+    console.log('\nSample recoverable:');
+    for (const d of recoverableDetails) {
+      console.log(`  Task ${d.taskId} | ${d.worker} | ${d.cnic} | old#${d.oldEmpId}`);
+      if (d.front) console.log(`    → front: ${d.front}`);
+      if (d.back) console.log(`    → back: ${d.back}`);
+      if (d.photo) console.log(`    → photo: ${d.photo}`);
+    }
+  }
+
+  // === 7. Verification tasks by status ===
+  console.log('\n=== VERIFICATION TASKS BY STATUS (new DB) ===');
+  const { rows: statusRows } = await newDb.query(`
+    SELECT status, COUNT(*)::int AS cnt FROM verification_tasks GROUP BY status ORDER BY status
+  `);
+  for (const r of statusRows) {
+    console.log(`  ${r.status}: ${r.cnt}`);
+  }
+
+  // === 8. Credit status check ===
+  console.log('\n=== CREDIT STATUS ===');
+  const { rows: [creditInfo] } = await newDb.query(`
+    SELECT
+      COUNT(DISTINCT c.id)::int AS total_companies,
+      COUNT(DISTINCT cs.id)::int AS with_credit,
+      SUM(CASE WHEN cs."availableUnits" > 0 THEN 1 ELSE 0 END)::int AS with_units
+    FROM companies c
+    LEFT JOIN credit_statuses cs ON cs."companyId" = c.id
+  `);
+  console.log(`Total companies: ${creditInfo.total_companies}`);
+  console.log(`With credit_status: ${creditInfo.with_credit}`);
+  console.log(`With available units > 0: ${creditInfo.with_units}`);
+
+  // === 9. Worker photo column check ===
+  console.log('\n=== WORKER PHOTOS (worker.photo column) ===');
+  const { rows: [photoStats] } = await newDb.query(`
+    SELECT COUNT(*)::int AS total,
+           SUM(CASE WHEN photo IS NOT NULL AND photo != '' THEN 1 ELSE 0 END)::int AS with_photo
+    FROM workers
+  `);
+  console.log(`Total workers: ${photoStats.total}`);
+  console.log(`With photo: ${photoStats.with_photo}`);
+  console.log(`Without photo: ${photoStats.total - photoStats.with_photo}`);
+
+  await newDb.end();
+  await oldDb.end();
   console.log('\nDone.');
 }
 
