@@ -83,7 +83,7 @@ async function run() {
 
     // Look up user in old DB
     const { rows: oldUsers } = await oldDb.query(
-      `SELECT id, name, email, phone FROM "user" WHERE id = $1`,
+      `SELECT id, name, email, phone_number AS phone FROM "user" WHERE id = $1`,
       [oldId]
     );
 
