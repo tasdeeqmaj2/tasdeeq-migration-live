@@ -195,8 +195,8 @@ async function main() {
   console.log(`Old documents: ${oldDocs.length}\n`);
 
   // 6. Load existing CPLC reviewer (for CPLC reviews — use a system reviewer if available)
-  const { rows: cplcUsers } = await newDb.query(`SELECT id FROM cplc_users LIMIT 1`);
-  const cplcReviewerId = cplcUsers.length > 0 ? cplcUsers[0].id : null;
+  const { rows: cplcUsers } = await newDb.query(`SELECT "userId" FROM cplc_users LIMIT 1`);
+  const cplcReviewerId = cplcUsers.length > 0 ? cplcUsers[0].userId : null;
   console.log(`CPLC reviewer: ${cplcReviewerId || 'NONE — CPLC reviews will be skipped'}\n`);
 
   // 7. Match and prepare inserts
