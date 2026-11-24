@@ -102,6 +102,12 @@ async function run() {
           // Delete verification_form_drafts
           await db.query(`DELETE FROM verification_form_drafts WHERE "taskId" = $1`, [td.id]);
 
+          // Delete cplc_verification_reviews
+          await db.query(`DELETE FROM cplc_verification_reviews WHERE "taskId" = $1`, [td.id]);
+
+          // Delete notifications referencing this task
+          await db.query(`DELETE FROM notifications WHERE data->>'taskId' = $1`, [td.id]);
+
           // Delete the task
           await db.query(`DELETE FROM verification_tasks WHERE id = $1`, [td.id]);
         }
