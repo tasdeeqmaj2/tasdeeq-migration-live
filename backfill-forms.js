@@ -147,11 +147,13 @@ async function run() {
         if (DRY_RUN) {
           created++;
         } else {
+          const now = new Date().toISOString();
           await newDb.query(`
             INSERT INTO criminal_verification_forms (
               "id", "taskId", "fullName", "fatherName", "dateOfBirth",
-              "cnicNumber", "currentAddress", "cityId", "provinceId"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+              "cnicNumber", "currentAddress", "cityId", "provinceId",
+              "createdAt", "updatedAt"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
             ON CONFLICT ("taskId") DO NOTHING
           `, [
             id,
@@ -163,6 +165,8 @@ async function run() {
             emp.address || DEFAULT_ADDRESS,
             cityId,
             provinceId,
+            now,
+            now,
           ]);
           created++;
         }
