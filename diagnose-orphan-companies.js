@@ -20,7 +20,7 @@ const OLD_DB_URL = process.env.OLD_DATABASE_URL;
 if (!NEW_DB_URL) { console.error('Set NEW_DATABASE_URL in .env'); process.exit(1); }
 
 async function run() {
-  const newDb = new Client({ connectionString: NEW_DB_URL });
+  const newDb = new Client({ connectionString: NEW_DB_URL, ssl: { rejectUnauthorized: false } });
   await newDb.connect();
   console.log('Connected to NEW (live) DB\n');
 
