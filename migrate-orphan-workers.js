@@ -133,7 +133,7 @@ async function run() {
           SELECT DISTINCT i.id
           FROM invoices i
           JOIN invoice_items ii ON ii."invoiceId" = i.id
-          JOIN verification_tasks vt ON vt.id = ii."verificationTaskId"
+          JOIN verification_tasks vt ON vt.id = ii."taskId"
           WHERE vt."workerId" = ANY($1::text[])
             AND i."companyId" = $2
         `, [uniqueIds, m.orphan_id]);
