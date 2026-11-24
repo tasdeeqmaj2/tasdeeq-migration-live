@@ -117,19 +117,20 @@ async function run() {
     matched++;
     const newLimit = company.creditLimit ? parseFloat(company.creditLimit) : null;
     const expectedFromAvail = oldAvail * 500;
-    const expectedFromTotal = oldTotal * 500;
+    const expectedFromFree = oldFree * 500;
+    const expectedFromTotal = (oldAvail + oldFree) * 500;
 
     let matchStr;
     if (newLimit === null && oldAvail === 0) matchStr = '✓ both 0';
     else if (newLimit === expectedFromAvail) matchStr = '✓ avail*500';
-    else if (newLimit === expectedFromTotal) matchStr = '~ total*500';
+    else if (newLimit === expectedFromFree) matchStr = '~ free*500';
+    else if (newLimit === expectedFromTotal) matchStr = '~ (a+f)*500';
     else { matchStr = '✗ MISMATCH'; mismatches++; }
 
     console.log(
       `${(u.name || 'N/A').substring(0, 24).padEnd(25)} | ` +
       `${String(oldAvail).padStart(8)} | ` +
-      `${String(oldTotal).padStart(8)} | ` +
-      `${String(oldUsed).padStart(7)} | ` +
+      `${String(oldFree).padStart(8)} | ` +
       `${company.name.substring(0, 27).padEnd(28)} | ` +
       `${String(newLimit ?? 'NULL').padStart(14)} | ` +
       `${String(expectedFromAvail).padStart(15)} | ` +
