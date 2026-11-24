@@ -15,7 +15,7 @@ const { Client } = require('pg');
 
 const PROD = process.argv.includes('--prod');
 
-const LOCAL_NEW_URL = 'postgresql://postgres:12345678@127.0.0.1:5433/tasdeeq';
+const LOCAL_NEW_URL = process.env.OLD_DATABASE_URL;
 
 // For prod: pass DATABASE_URL and OLD_DATABASE_URL as env vars
 // For local: reads old from .env, new is hardcoded
