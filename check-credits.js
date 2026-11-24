@@ -32,11 +32,11 @@ async function run() {
   console.log('\n=== ALL OLD USERS WITH AVAILABLE UNITS ===');
   const { rows: oldUsers } = await oldDb.query(`
     SELECT uav.user_id AS id, u.name, u.email, u.phone_number AS phone,
-           uav.available_units, uav.total_units, uav.used_units
+           uav.available_verification, uav.free_verification, uav.is_active
     FROM user_available_verification uav
     JOIN "user" u ON u.id = uav.user_id
-    WHERE uav.available_units > 0 OR uav.total_units > 0
-    ORDER BY uav.available_units DESC NULLS LAST
+    WHERE uav.available_verification > 0 OR uav.free_verification > 0
+    ORDER BY uav.available_verification DESC NULLS LAST
   `);
   console.log(`Found ${oldUsers.length} old users with units\n`);
 
@@ -44,8 +44,7 @@ async function run() {
   console.log(
     'Old User'.padEnd(25) + ' | ' +
     'OldAvail'.padStart(8) + ' | ' +
-    'OldTotal'.padStart(8) + ' | ' +
-    'OldUsed'.padStart(7) + ' | ' +
+    'OldFree'.padStart(8) + ' | ' +
     'New Company'.padEnd(28) + ' | ' +
     'NewCreditLimit'.padStart(14) + ' | ' +
     'Expected(A*500)'.padStart(15) + ' | ' +
@@ -56,9 +55,8 @@ async function run() {
   let matched = 0, mismatches = 0, notFound = 0;
 
   for (const u of oldUsers) {
-    const oldAvail = parseInt(u.available_units || '0');
-    const oldTotal = parseInt(u.total_units || '0');
-    const oldUsed = parseInt(u.used_units || '0');
+    const oldAvail = parseInt(u.available_verification || '0');
+    const oldFree = parseInt(u.free_verification || '0');
 
     // Find new company via migrated email, phone, or email
     const migratedEmail = `migrated-${u.id}@consumer.tasdeeq.app`;
@@ -107,8 +105,7 @@ async function run() {
       console.log(
         `${(u.name || 'N/A').substring(0, 24).padEnd(25)} | ` +
         `${String(oldAvail).padStart(8)} | ` +
-        `${String(oldTotal).padStart(8)} | ` +
-        `${String(oldUsed).padStart(7)} | ` +
+        `${String(oldFree).padStart(8)} | ` +
         `${'NOT FOUND'.padEnd(28)} | ` +
         `${'—'.padStart(14)} | ` +
         `${String(oldAvail * 500).padStart(15)} | ` +
