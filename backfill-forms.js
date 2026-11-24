@@ -9,6 +9,7 @@
  */
 require('dotenv').config();
 const { Client } = require('pg');
+const crypto = require('crypto');
 const fs = require('fs');
 
 const NEW_DB_URL = process.env.NEW_DATABASE_URL;
@@ -17,6 +18,13 @@ if (!NEW_DB_URL || !OLD_DB_URL) { console.error('Set both NEW_DATABASE_URL and O
 
 const DRY_RUN = process.env.DRY_RUN !== 'false';
 const SSL = { rejectUnauthorized: false };
+
+// Generate a cuid-like id (Prisma cuid() format: starts with 'c', 25 chars)
+function cuid() {
+  const ts = Date.now().toString(36);
+  const rnd = crypto.randomBytes(12).toString('base64url').slice(0, 16).toLowerCase();
+  return ('c' + ts + rnd).slice(0, 25);
+}
 
 // target_company_id → old_user_id (extracted from migrated email pattern)
 const MAPPINGS = [
@@ -43,6 +51,22 @@ const MAPPINGS = [
   { target_id: 'cmwnhyify5f82b1e45c08fc43', old_user_id: 54813, name: 'Century Insurance' },
 ];
 
+// Fallback defaults for required fields when old data is missing
+const DEFAULT_DOB = '2000-01-01';
+const DEFAULT_ADDRESS = 'N/A';
+const DEFAULT_CITY_ID = 135;    // Karachi (most common in old data)
+const DEFAULT_PROVINCE_ID = 7;  // Sindh
+
+function parseDob(raw) {
+  if (!raw) return null;
+  const d = new Date(raw);
+  if (isNaN(d.getTime())) return null;
+  if (d.getFullYear() > 1900 && d.getFullYear() < 2020) {
+    return d.toISOString().split('T')[0];
+  }
+  return null;
+}
+
 async function run() {
   const newDb = new Client({ connectionString: NEW_DB_URL, ssl: SSL });
   const oldDb = new Client({ connectionString: OLD_DB_URL, ssl: SSL });
@@ -59,58 +83,38 @@ async function run() {
     console.log(`${m.name} (target: ${m.target_id}, old user: ${m.old_user_id})`);
     console.log('═'.repeat(60));
 
-    // Find all DRAFT tasks without forms in this company
-    const { rows: drafts } = await newDb.query(`
-      SELECT vt.id AS task_id, w.cnic, w.name AS worker_name, w.id AS worker_id
+    // Find all tasks without forms in this company
+    const { rows: tasks } = await newDb.query(`
+      SELECT vt.id AS task_id, vt.status, w.cnic, w.name AS worker_name, w.id AS worker_id
       FROM verification_tasks vt
       JOIN workers w ON w.id = vt."workerId"
       LEFT JOIN criminal_verification_forms cf ON cf."taskId" = vt.id
-      WHERE vt."companyId" = $1 AND vt.status = 'DRAFT' AND cf."taskId" IS NULL
+      WHERE vt."companyId" = $1 AND cf."taskId" IS NULL
     `, [m.target_id]);
 
-    // Also find non-DRAFT tasks without forms (the 11 COMPLETED ones for Osama etc.)
-    const { rows: otherNoForm } = await newDb.query(`
-      SELECT vt.id AS task_id, w.cnic, w.name AS worker_name, w.id AS worker_id, vt.status
-      FROM verification_tasks vt
-      JOIN workers w ON w.id = vt."workerId"
-      LEFT JOIN criminal_verification_forms cf ON cf."taskId" = vt.id
-      WHERE vt."companyId" = $1 AND vt.status != 'DRAFT' AND cf."taskId" IS NULL
-    `, [m.target_id]);
-
-    const allTasks = [
-      ...drafts.map(d => ({ ...d, status: 'DRAFT' })),
-      ...otherNoForm,
-    ];
-
-    console.log(`  Tasks without forms: ${allTasks.length} (${drafts.length} DRAFT, ${otherNoForm.length} other)`);
-
-    if (allTasks.length === 0) {
+    console.log(`  Tasks without forms: ${tasks.length}`);
+    if (tasks.length === 0) {
       report.push({ name: m.name, total: 0, created: 0, skipped: 0, not_found: 0 });
       continue;
     }
 
-    // Build a map of old workers by CNIC
-    const cnics = [...new Set(allTasks.map(t => t.cnic).filter(Boolean))];
+    // Build old worker map by CNIC
+    const cnics = [...new Set(tasks.map(t => t.cnic).filter(Boolean))];
     const oldWorkerMap = new Map();
 
     if (cnics.length > 0) {
-      // Batch lookup old workers
       const { rows: oldWorkers } = await oldDb.query(`
-        SELECT id, cnic, date_of_birth, city_id, province_id,
-               picture_link, cnic_front_picture_link, cnic_back_picture_link
+        SELECT id, cnic, date_of_birth, city_id, province_id
         FROM worker WHERE cnic = ANY($1::text[])
       `, [cnics]);
 
-      for (const ow of oldWorkers) {
-        oldWorkerMap.set(ow.cnic, ow);
-      }
+      for (const ow of oldWorkers) oldWorkerMap.set(ow.cnic, ow);
 
-      // Batch lookup employments for all matched old workers under this old user
       const oldWorkerIds = oldWorkers.map(w => w.id);
       if (oldWorkerIds.length > 0) {
         const { rows: employments } = await oldDb.query(`
           SELECT DISTINCT ON (worker_id)
-                 id, worker_id, full_name, father_name, address, worker_type_id
+                 id, worker_id, full_name, father_name, address
           FROM user_worker_employment
           WHERE worker_id = ANY($1::bigint[]) AND user_id = $2
           ORDER BY worker_id, registration_timestamp DESC
@@ -120,21 +124,6 @@ async function run() {
           const ow = [...oldWorkerMap.values()].find(w => String(w.id) === String(emp.worker_id));
           if (ow) ow._employment = emp;
         }
-
-        // Batch lookup employment documents
-        const empIds = employments.map(e => e.id);
-        if (empIds.length > 0) {
-          const { rows: docs } = await oldDb.query(`
-            SELECT user_worker_employment_id, picture_link, cnic_front_picture_link, cnic_back_picture_link
-            FROM user_worker_employment_document
-            WHERE user_worker_employment_id = ANY($1::bigint[])
-          `, [empIds]);
-
-          for (const doc of docs) {
-            const emp = employments.find(e => String(e.id) === String(doc.user_worker_employment_id));
-            if (emp) emp._docs = doc;
-          }
-        }
       }
     }
 
@@ -143,44 +132,35 @@ async function run() {
     if (!DRY_RUN) await newDb.query('BEGIN');
 
     try {
-      for (const task of allTasks) {
+      for (const task of tasks) {
         if (!task.cnic) { skipped++; continue; }
 
         const ow = oldWorkerMap.get(task.cnic);
-        if (!ow) { notFound++; continue; }
+        if (!ow || !ow._employment) { notFound++; continue; }
 
         const emp = ow._employment;
-        if (!emp) { notFound++; continue; }
-
-        // Parse DOB — old DB has some garbage dates (year 0097 etc.)
-        let dob = null;
-        if (ow.date_of_birth) {
-          const d = new Date(ow.date_of_birth);
-          if (d.getFullYear() > 1900 && d.getFullYear() < 2020) {
-            dob = d.toISOString().split('T')[0]; // YYYY-MM-DD
-          }
-        }
-
-        // City/province IDs match between old and new DB
-        const cityId = ow.city_id || null;
-        const provinceId = ow.province_id || null;
+        const dob = parseDob(ow.date_of_birth) || DEFAULT_DOB;
+        const cityId = ow.city_id || DEFAULT_CITY_ID;
+        const provinceId = ow.province_id || DEFAULT_PROVINCE_ID;
+        const id = cuid();
 
         if (DRY_RUN) {
           created++;
         } else {
           await newDb.query(`
             INSERT INTO criminal_verification_forms (
-              "taskId", "fullName", "fatherName", "dateOfBirth",
+              "id", "taskId", "fullName", "fatherName", "dateOfBirth",
               "cnicNumber", "currentAddress", "cityId", "provinceId"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT ("taskId") DO NOTHING
           `, [
+            id,
             task.task_id,
             emp.full_name || task.worker_name,
-            emp.father_name || null,
+            emp.father_name || 'N/A',
             dob,
             task.cnic,
-            emp.address || null,
+            emp.address || DEFAULT_ADDRESS,
             cityId,
             provinceId,
           ]);
@@ -188,18 +168,22 @@ async function run() {
         }
       }
 
-      if (!DRY_RUN) await newDb.query('COMMIT');
+      if (!DRY_RUN) {
+        await newDb.query('COMMIT');
+        console.log(`  ✓ Committed`);
+      }
     } catch (err) {
       if (!DRY_RUN) await newDb.query('ROLLBACK');
       console.error(`  ✗ ERROR: ${err.message}`);
     }
 
     console.log(`  ${DRY_RUN ? '[DRY RUN] Would create' : '✓ Created'}: ${created} forms`);
-    console.log(`  Skipped (no CNIC): ${skipped}, Not found in old DB: ${notFound}`);
+    if (skipped) console.log(`  Skipped (no CNIC): ${skipped}`);
+    if (notFound) console.log(`  Not found in old DB: ${notFound}`);
     totalCreated += created;
     totalSkipped += skipped;
     totalNotFound += notFound;
-    report.push({ name: m.name, total: allTasks.length, created, skipped, not_found: notFound });
+    report.push({ name: m.name, total: tasks.length, created, skipped, not_found: notFound });
   }
 
   console.log(`\n${'═'.repeat(60)}`);
