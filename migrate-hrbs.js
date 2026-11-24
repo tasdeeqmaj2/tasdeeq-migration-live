@@ -80,13 +80,6 @@ async function run() {
       );
       console.log(`✓ Invoices moved: ${r3.rowCount}`);
 
-      // Move invoice_items that reference tasks (they reference invoiceId, so they follow automatically)
-      // Move cart_items if any
-      const r4 = await db.query(
-        `UPDATE cart_items SET "companyId" = $1 WHERE "companyId" = $2`, [TARGET_ID, ORPHAN_ID]
-      );
-      if (r4.rowCount > 0) console.log(`✓ Cart items moved: ${r4.rowCount}`);
-
       // Move worker_activities if any
       const r5 = await db.query(
         `UPDATE worker_activities SET "companyId" = $1 WHERE "companyId" = $2`, [TARGET_ID, ORPHAN_ID]
