@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-11-25T10:53:07.085Z",
+  "dryRun": false,
+  "encryptedUsers": 245689,
+  "matched": 245689,
+  "matchedByEmail": 245666,
+  "matchedByPhone": 23,
+  "matchedByMap": 0,
+  "mapInvalid": 582,
+  "notMatched": 0,
+  "createdUsers": 0,
+  "totalEmployments": 164049,
+  "alreadyMigrated": 0,
+  "workersInserted": 164049,
+  "documentsInserted": 268751,
+  "unmatchedSample": []
+}
