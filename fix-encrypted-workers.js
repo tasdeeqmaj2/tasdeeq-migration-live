@@ -56,28 +56,35 @@ async function run() {
   console.log(`MODE: ${DRY_RUN ? '🔍 DRY RUN' : '🚀 LIVE'}\n`);
 
   const mapPath = path.join(__dirname, 'mappings', 'encryptedWorkerMap.json');
-  const encWorkerMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
-  const allEncWorkerIds = Object.values(encWorkerMap);
-  console.log(`Encrypted worker map: ${allEncWorkerIds.length} entries\n`);
+  let allEncWorkerIds = [];
+  if (fs.existsSync(mapPath)) {
+    const encWorkerMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    allEncWorkerIds = Object.values(encWorkerMap);
+    console.log(`Encrypted worker map: ${allEncWorkerIds.length} entries\n`);
+  } else {
+    console.log(`No encryptedWorkerMap.json found — skipping Step 1 (delete)\n`);
+  }
 
   // ── Step 1: Delete ALL encrypted-migration workers ──
-  console.log('=== Step 1: Deleting all encrypted-migration workers ===\n');
+  if (allEncWorkerIds.length > 0) {
+    console.log('=== Step 1: Deleting all encrypted-migration workers ===\n');
 
-  if (!DRY_RUN) {
-    await newDb.query('BEGIN');
-    let docsDeleted = 0, workersDeleted = 0;
-    for (let i = 0; i < allEncWorkerIds.length; i += BATCH_SIZE) {
-      const batch = allEncWorkerIds.slice(i, i + BATCH_SIZE);
-      const { rowCount: dc } = await newDb.query(`DELETE FROM worker_documents WHERE "workerId" = ANY($1::text[])`, [batch]);
-      docsDeleted += dc;
-      const { rowCount: wc } = await newDb.query(`DELETE FROM workers WHERE id = ANY($1::text[])`, [batch]);
-      workersDeleted += wc;
-      if (i % 20000 === 0) console.log(`  Deleted ${workersDeleted} workers, ${docsDeleted} docs so far...`);
+    if (!DRY_RUN) {
+      await newDb.query('BEGIN');
+      let docsDeleted = 0, workersDeleted = 0;
+      for (let i = 0; i < allEncWorkerIds.length; i += BATCH_SIZE) {
+        const batch = allEncWorkerIds.slice(i, i + BATCH_SIZE);
+        const { rowCount: dc } = await newDb.query(`DELETE FROM worker_documents WHERE "workerId" = ANY($1::text[])`, [batch]);
+        docsDeleted += dc;
+        const { rowCount: wc } = await newDb.query(`DELETE FROM workers WHERE id = ANY($1::text[])`, [batch]);
+        workersDeleted += wc;
+        if (i % 20000 === 0) console.log(`  Deleted ${workersDeleted} workers, ${docsDeleted} docs so far...`);
+      }
+      await newDb.query('COMMIT');
+      console.log(`Deleted ${workersDeleted} workers + ${docsDeleted} docs\n`);
+    } else {
+      console.log(`[DRY] Would delete ${allEncWorkerIds.length} workers + their docs\n`);
     }
-    await newDb.query('COMMIT');
-    console.log(`Deleted ${workersDeleted} workers + ${docsDeleted} docs\n`);
-  } else {
-    console.log(`[DRY] Would delete ${allEncWorkerIds.length} workers + their docs\n`);
   }
 
   // ── Step 2: Build target company mapping for encrypted users ──
@@ -289,6 +296,7 @@ async function run() {
 
   // Save new map
   if (!DRY_RUN) {
+    fs.mkdirSync(path.dirname(mapPath), { recursive: true });
     const tmp = `${mapPath}.tmp`;
     fs.writeFileSync(tmp, JSON.stringify(newEncMap), 'utf8');
     fs.renameSync(tmp, mapPath);
