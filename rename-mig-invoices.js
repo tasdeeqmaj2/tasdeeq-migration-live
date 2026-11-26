@@ -52,8 +52,30 @@ async function run() {
 
   if (!DRY_RUN) {
     await db.query('BEGIN');
+    await db.query('LOCK TABLE invoices IN EXCLUSIVE MODE');
+
+    // Re-query max INV- numbers inside the lock to avoid conflicts
+    const { rows: lockedMaxes } = await db.query(`
+      SELECT SUBSTRING("invoiceNumber" FROM 5 FOR 6) AS month,
+             MAX(CAST(SUBSTRING("invoiceNumber" FROM 12) AS int)) AS max_num
+      FROM invoices
+      WHERE "invoiceNumber" ~ '^INV-\\d{6}-\\d+'
+      GROUP BY 1
+    `);
+    const lockedCounters = {};
+    for (const r of lockedMaxes) lockedCounters[r.month] = r.max_num;
+
+    // Rebuild renames with locked counters
+    const finalRenames = [];
+    for (const inv of toRename) {
+      const d = new Date(inv.createdAt);
+      const ym = String(d.getFullYear()) + String(d.getMonth() + 1).padStart(2, '0');
+      lockedCounters[ym] = (lockedCounters[ym] || 0) + 1;
+      finalRenames.push({ id: inv.id, newNum: `INV-${ym}-${String(lockedCounters[ym]).padStart(4, '0')}` });
+    }
+
     let count = 0;
-    for (const r of renames) {
+    for (const r of finalRenames) {
       await db.query(`UPDATE invoices SET "invoiceNumber" = $1 WHERE id = $2`, [r.newNum, r.id]);
       count++;
       if (count % 10000 === 0) console.log(`  Renamed: ${count}`);
